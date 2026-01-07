@@ -21,4 +21,17 @@ public class UserService {
         return "User registered successfully";
     }
 
+    public String loginUser(String email, String password) {
+        Optional<User> userOpt = userRepository.findByEmail(email);
+        if (userOpt.isPresent()) {
+            User user = userOpt.get();
+            if (user.getPassword().equals(password)) {
+                return "Login successful! Role: " + user.getRole();
+            } else {
+                return "Invalid credentials";
+            }
+        }
+        return "User does not exist";
+    }
+
 }
