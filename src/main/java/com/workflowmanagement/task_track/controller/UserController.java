@@ -21,5 +21,15 @@ public class UserController {
         return userService.registerUser(user);
     }
 
+    @PostMapping("/login")
+    public String login(@RequestBody User loginRequest) {
+        if (loginRequest.getEmail() == null || loginRequest.getEmail().isEmpty() ||
+                loginRequest.getPassword() == null || loginRequest.getPassword().isEmpty()) {
+            return "Validation Error: Credentials required!";
+        }
+        return userService.loginUser(loginRequest.getEmail(), loginRequest.getPassword());
+    }
+
+
 
 }
