@@ -1,5 +1,6 @@
 package com.workflowmanagement.task_track.service;
 
+import com.workflowmanagement.task_track.config.JwtUtil;
 import com.workflowmanagement.task_track.model.User;
 import com.workflowmanagement.task_track.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +13,9 @@ public class UserService {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private JwtUtil jwtUtil;
+
     public String registerUser(User user) {
         Optional<User> existingUser = userRepository.findByEmail(user.getEmail());
         if (existingUser.isPresent()) {
@@ -23,10 +27,12 @@ public class UserService {
 
     public String loginUser(String email, String password) {
         Optional<User> userOpt = userRepository.findByEmail(email);
+
         if (userOpt.isPresent()) {
             User user = userOpt.get();
             if (user.getPassword().equals(password)) {
-                return "Login successful! Role: " + user.getRole();
+                // Generate and return the real JWT token
+                return jwtUtil.generateToken(user.getEmail(), user.getRole());
             } else {
                 return "Invalid credentials";
             }
