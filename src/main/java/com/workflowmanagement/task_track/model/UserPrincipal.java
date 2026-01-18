@@ -30,6 +30,7 @@ public class UserPrincipal implements UserDetails {
         return user.getEmail(); // We use email as the username for login
     }
 
+
     @Override
     public boolean isAccountNonExpired() { return true; }
     @Override
