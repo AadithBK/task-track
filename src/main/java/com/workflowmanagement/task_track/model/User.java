@@ -6,12 +6,17 @@ import com.workflowmanagement.task_track.enums.Status;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.*;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @AllArgsConstructor
 @NoArgsConstructor
 @Data // Data includes Getter, Setter, and RequiredArgsConstructor
 @Entity
 @Table(name = "users")
+
+@NoArgsConstructor
+@Data
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
