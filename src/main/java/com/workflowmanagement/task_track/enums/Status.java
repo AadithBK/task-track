@@ -1,5 +1,17 @@
-package com.workflowmanagement.task_track.enums;
+    package com.workflowmanagement.task_track.enums;
 
-public enum Status {
-    ACTIVE, INACTIVE, PENDIND, SUSPENDED
-}
+    import com.fasterxml.jackson.annotation.JsonCreator;
+
+    public enum Status {
+        ACTIVE, INACTIVE, PENDING, SUSPENDED;
+
+        @JsonCreator
+        public static Status fromValue(String value) {
+            for (Status status : Status.values()) {
+                if (status.name().equalsIgnoreCase(value)) {
+                    return status;
+                }
+            }
+            throw new IllegalArgumentException("Invalid Status: [" + value + "].");
+        }
+    }

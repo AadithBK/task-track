@@ -1,5 +1,7 @@
 package com.workflowmanagement.task_track.service;
 
+import com.workflowmanagement.task_track.Exceptions.InvalidCredentialsException;
+import com.workflowmanagement.task_track.Exceptions.UserAlreadyExistsException;
 import com.workflowmanagement.task_track.config.JwtUtil;
 import com.workflowmanagement.task_track.model.User;
 import com.workflowmanagement.task_track.repository.UserRepository;
@@ -7,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -18,41 +21,59 @@ public class UserService {
     @Autowired
     private JwtUtil jwtUtil;
 
-    private BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
+    private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
 
-    /**
-     * Registers a new user by hashing their password before saving to the DB.
-     */
-    public String registerUser(User user) {
-        Optional<User> existingUser = userRepository.findByEmail(user.getEmail());
-        if (existingUser.isPresent()) {
-            return "User already exists with email: " + user.getEmail();
+    public User registerUser(User user) {
+        if (userRepository.findByEmail(user.getEmail()).isPresent()) {
+            throw new UserAlreadyExistsException("User already exists with email: " + user.getEmail());
         }
-        String hashedEntry = encoder.encode(user.getPassword());
-        user.setPassword(hashedEntry);
-
-        // 3. Save the user entity
-        userRepository.save(user);
-        return "User registered successfully";
+        user.setPassword(encoder.encode(user.getPassword()));
+        return userRepository.save(user);
     }
 
-    /**
-     * Validates credentials and returns a JWT token if successful.
-     */
     public String loginUser(String email, String password) {
-        Optional<User> userOpt = userRepository.findByEmail(email);
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new InvalidCredentialsException("User does not exist"));
 
-        if (userOpt.isPresent()) {
-            User user = userOpt.get();
-
-            // Compare the raw password with the hashed password in the database
-            if (encoder.matches(password, user.getPassword())) {
-                return jwtUtil.generateToken(user.getEmail(), user.getRole().name());//If matches, generate the JWT token
-            } else {
-                return "Invalid credentials: Password does not match.";
-            }
+        if (!encoder.matches(password, user.getPassword())) {
+            throw new InvalidCredentialsException("Invalid credentials: Password does not match.");
         }
 
-        return "User does not exist with email: " + email;
+        return jwtUtil.generateToken(user.getEmail(), user.getRole().name());
+    }
+
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
+    }
+
+    public Optional<User> getUserById(Integer id) {
+        return userRepository.findById(id);
+    }
+
+    public Optional<User> updateUserById(Integer id, User user) {
+
+        return userRepository.findById(id).map(
+                existingUser-> {
+                    existingUser.setUserName(user.getUserName());
+                    existingUser.setRole(user.getRole());
+                    existingUser.setEmail(user.getEmail());
+                    existingUser.setStatus(user.getStatus());
+                    existingUser.setDepartment(user.getDepartment());
+                    if(user.getPassword()!=null && !user.getPassword().isEmpty())
+                    {
+                            existingUser.setPassword(encoder.encode(user.getPassword()) );
+                    }
+                    return userRepository.save(existingUser);
+                }
+        );
+    }
+
+    public boolean deleteUserById(Integer id) {
+        if(userRepository.existsById(id))
+        {
+            userRepository.deleteById(id);
+            return true;
+        }
+        return false;
     }
 }
