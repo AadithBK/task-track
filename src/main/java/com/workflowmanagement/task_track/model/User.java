@@ -1,8 +1,8 @@
 package com.workflowmanagement.task_track.model;
 
-import com.workflowmanagement.task_track.model.enums.Department;
-import com.workflowmanagement.task_track.model.enums.Role;
-import com.workflowmanagement.task_track.model.enums.Status;
+import com.workflowmanagement.task_track.enums.Department;
+import com.workflowmanagement.task_track.enums.Role;
+import com.workflowmanagement.task_track.enums.Status;
 import jakarta.persistence.*;
 import lombok.*;
 
