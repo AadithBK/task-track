@@ -6,7 +6,7 @@
         ACTIVE, INACTIVE, PENDING, SUSPENDED;
 
         @JsonCreator
-        public static Status fromValue(String value) {
+        public static Status fromValue(String value) throws IllegalArgumentException {
             for (Status status : Status.values()) {
                 if (status.name().equalsIgnoreCase(value)) {
                     return status;

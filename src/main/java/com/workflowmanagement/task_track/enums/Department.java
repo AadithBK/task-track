@@ -7,7 +7,7 @@ public enum Department {
     IT, HR, SALES, MARKETING, OPERATIONS;
 
     @JsonCreator
-    public static Department fromValue(String value) {
+    public static Department fromValue(String value)  throws IllegalArgumentException{
         for (Department dept : Department.values()) {
             if (dept.name().equalsIgnoreCase(value)) {
                 return dept;

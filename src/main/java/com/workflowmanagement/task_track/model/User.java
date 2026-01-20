@@ -53,3 +53,9 @@ public class User {
     @NotNull(message = "Status is required")
     private Status status;
 }
+
+//{
+//status: "ok" | "fuckedup" | "err",
+//message: "Server message" | null,
+//error: null|"error to client"
+//}

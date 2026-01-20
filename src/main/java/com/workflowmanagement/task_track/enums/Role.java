@@ -5,7 +5,7 @@ public enum Role {
     ADMIN, MANAGER, EMPLOYEE;
 
     @JsonCreator
-    public static Role fromValue(String value) {
+    public static Role fromValue(String value)  throws IllegalArgumentException {
         for (Role role : Role.values()) {
             if (role.name().equalsIgnoreCase(value)) {
                 return role;
