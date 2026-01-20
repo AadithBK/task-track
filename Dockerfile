@@ -1,6 +1,14 @@
-FROM openjdk:27-ea-oraclelinux9
-RUN addgroup -S spring && adduser -S spring -G spring
-USER spring:spring
-ARG JAR_FILE=target/*.jar
-COPY ${JAR_FILE} app.jar
-ENTRYPOINT ["java","-jar","/app.jar"]
+# Stage 1: Build the application using a Maven or Gradle image
+FROM maven:3.8.1-openjdk-17 AS MAVEN_BUILD
+COPY .mvn .mvn
+COPY mvnw pom.xml ./
+RUN ./mvnw dependency:go-offline
+COPY src ./src
+RUN ./mvnw clean package -DskipTests
+
+# Stage 2: Create the final, lightweight runtime image
+FROM openjdk:17-jre-slim
+WORKDIR /app
+COPY --from=MAVEN_BUILD target/*.jar app.jar
+EXPOSE 8080
+ENTRYPOINT ["java", "-jar", "app.jar"]
