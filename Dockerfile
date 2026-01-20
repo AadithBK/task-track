@@ -28,8 +28,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf 
 COPY --from=build /app/target/*.jar /app/app.jar
 
 # Healthcheck (adjust if you don't use actuator)
-HEALTHCHECK --interval=30s --timeout=3s --start-period=30s --retries=3 \
-  CMD curl -fsS http://localhost:8080/actuator/health || exit 1
 
 EXPOSE 8080
 
