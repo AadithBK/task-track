@@ -20,8 +20,7 @@ WORKDIR /app
 # NOTE: Running as root (per your request)
 # No useradd, no USER command needed.
 
-# Install curl for HEALTHCHECK (Temurin JRE image doesn't include it)
-RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
+
 
 # Copy built jar
 COPY --from=build /app/target/*.jar /app/app.jar
