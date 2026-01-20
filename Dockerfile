@@ -9,7 +9,7 @@ RUN mvn -q -B -e -DskipTests dependency:go-offline
 
 # Copy sources and build
 COPY src ./src
-RUN mvn -q -B -DskipTests package
+
 
 # Runtime on JRE 21
 FROM eclipse-temurin:21-jre
