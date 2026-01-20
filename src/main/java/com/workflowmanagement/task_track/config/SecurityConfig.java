@@ -26,10 +26,6 @@ public class SecurityConfig {
     private UserDetailsService userDetailsService;
 
 
-//    public SecurityConfig(UserDetailsServiceImpl userDetailsService, JwtFilter jwtFilter) {
-//        this.userDetailsService = userDetailsService;
-//        this.jwtFilter = jwtFilter;
-//    }
 
 
 
