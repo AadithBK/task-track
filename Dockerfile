@@ -1,4 +1,3 @@
-
 # ---------- Build stage ----------
 FROM maven:3.9-eclipse-temurin-21 AS build
 WORKDIR /app
@@ -20,12 +19,8 @@ WORKDIR /app
 # NOTE: Running as root (per your request)
 # No useradd, no USER command needed.
 
-
-
 # Copy built jar
 COPY --from=build /app/target/*.jar /app/app.jar
-
-# Healthcheck (adjust if you don't use actuator)
 
 EXPOSE 8080
 
