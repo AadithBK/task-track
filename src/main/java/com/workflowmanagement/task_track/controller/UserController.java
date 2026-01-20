@@ -28,7 +28,7 @@ public class UserController  {
     public ResponseEntity<CustomJSONResponse> signup(@Valid @RequestBody User user) {
         User registeredUser = userService.registerUser(user);
 //        return CustomJSONResponse.customJSONResponse(CustomStatus.OK, "User Created", null );
-    return new ResponseEntity( new CustomJSONResponse<>("User Created", null,CustomStatus.OK, null ),HttpStatus.CREATED);
+    return new ResponseEntity<>( new CustomJSONResponse<>("User Created", null,CustomStatus.OK, null ),HttpStatus.CREATED);
     }
 
     @PostMapping(value = "/login", produces = {"application/json"})

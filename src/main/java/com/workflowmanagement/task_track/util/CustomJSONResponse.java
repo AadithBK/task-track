@@ -1,26 +1,26 @@
 package com.workflowmanagement.task_track.util;
 
+import jakarta.annotation.Nullable;
 import lombok.Getter;
+
+import java.util.Optional;
 
 
 @Getter
 public class CustomJSONResponse<T> {
-    private String message;
-    private String error;
-    private CustomStatus status;
-    private Long timestamp;
-    private T data;
+    private final @Nullable String message;
+    private final @Nullable String error;
+    private final CustomStatus status;
+    private final @Nullable Long timestamp;
+    private final @Nullable T data;
 
-    public CustomJSONResponse(String message, String error, CustomStatus status, T data) {
+    public CustomJSONResponse(@Nullable String message, @Nullable String error, CustomStatus status, @Nullable T data) {
         this.message = message;
         this.error = error;
         this.status = status;
         this.timestamp = System.currentTimeMillis();
         this.data = data;
     }
-
-
-
 
 
 //    public  Map<String, String> customJSONResponse(CustomStatus status, String message, String error) {
