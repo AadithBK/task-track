@@ -7,7 +7,7 @@ COPY src ./src
 RUN ./mvnw clean package -DskipTests
 
 # Stage 2: Create the final, lightweight runtime image
-FROM openjdk:21
+FROM eclipse-temurin:21-jdk-alpine
 WORKDIR /app
 COPY --from=MAVEN_BUILD target/*.jar app.jar
 EXPOSE 8080
