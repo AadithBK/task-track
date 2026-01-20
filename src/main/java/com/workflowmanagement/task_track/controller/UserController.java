@@ -56,7 +56,7 @@ public class UserController  {
     public ResponseEntity<CustomJSONResponse<User>> getUserById(@PathVariable Integer id)
     {
         return userService.getUserById(id).
-                map(user->new ResponseEntity<>( new CustomJSONResponse<>(null, null, CustomStatus.OK, user),HttpStatus.OK))
+                map(user->new ResponseEntity<>( new CustomJSONResponse<User>(null, null, CustomStatus.OK, user),HttpStatus.OK))
                 .orElse(new ResponseEntity<>( new CustomJSONResponse<>("User Not Found", null, CustomStatus.OK, null),HttpStatus.NOT_FOUND));
     }
 
