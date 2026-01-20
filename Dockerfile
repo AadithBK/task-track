@@ -7,7 +7,7 @@ COPY src ./src
 RUN ./mvnw clean package -DskipTests
 
 # Stage 2: Create the final, lightweight runtime image
-FROM openjdk:17-jre-slim
+FROM openjdk:21
 WORKDIR /app
 COPY --from=MAVEN_BUILD target/*.jar app.jar
 EXPOSE 8080
