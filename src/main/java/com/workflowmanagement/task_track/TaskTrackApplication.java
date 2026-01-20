@@ -12,7 +12,7 @@ public class TaskTrackApplication {
     public static void main(String[] args) {
         // 1. Load .env file
         Dotenv dotenv = Dotenv.configure().ignoreIfMissing().load();
-        System.out.println("Hello");
+
         // 2. Set the variables into System properties so Spring can find them
         dotenv.entries().forEach(entry ->
                 System.setProperty(entry.getKey(), entry.getValue())
