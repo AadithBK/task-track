@@ -1,17 +1,19 @@
 
-# Build stage
-FROM eclipse-temurin:21-jdk as build
+# Build with Maven image (Temurin 21)
+FROM maven:3.9-eclipse-temurin-21 AS build
 WORKDIR /app
-# If using Maven Wrapper, ensure execute bit
-COPY .mvn/ .mvn/
-COPY mvnw pom.xml ./
-RUN ./mvnw -q -B -e -DskipTests dependency:go-offline
-COPY src ./src
-RUN ./mvnw -q -B -DskipTests package
 
-# Runtime stage (JRE is enough)
+# Copy pom first and warm the cache
+COPY pom.xml .
+RUN mvn -q -B -e -DskipTests dependency:go-offline
+
+# Copy sources and build
+COPY src ./src
+RUN mvn -q -B -DskipTests package
+
+# Runtime on JRE 21
 FROM eclipse-temurin:21-jre
 WORKDIR /app
-COPY --from=build /app/target/*.jar app.jar
+COPY --from=build /app/target/*.jar /app/app.jar
 EXPOSE 8080
 ENTRYPOINT ["java","-jar","/app/app.jar"]
