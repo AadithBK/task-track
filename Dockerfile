@@ -12,7 +12,6 @@ COPY src ./src
 # Builds Spring Boot fat jar (default)
 # IMPORTANT: Skip compiling & running tests to unblock build
 RUN mvn -B -e -Dmaven.test.skip=true -DskipITs package
-update
 
 # ---------- Runtime stage ----------
 FROM eclipse-temurin:21-jre
