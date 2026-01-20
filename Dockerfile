@@ -10,7 +10,7 @@ RUN mvn -q -B -e -DskipTests dependency:go-offline
 # Now copy sources and build
 COPY src ./src
 # Builds Spring Boot fat jar (default)
-RUN mvn -q -B -DskipTests package
+RUN mvn  -B -DskipTests package
 
 
 # ---------- Runtime stage ----------
