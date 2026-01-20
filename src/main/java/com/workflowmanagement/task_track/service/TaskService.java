@@ -3,10 +3,12 @@ package com.workflowmanagement.task_track.service;
 import com.workflowmanagement.task_track.dto.TaskCreateDto;
 import com.workflowmanagement.task_track.model.Task;
 import com.workflowmanagement.task_track.model.User;
+import com.workflowmanagement.task_track.model.UserPrincipal;
 import com.workflowmanagement.task_track.repository.TaskRepository;
 import com.workflowmanagement.task_track.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 
@@ -64,7 +66,11 @@ public class TaskService {
         return taskRepository.findByCreatedByUser_UserId(id);
     }
 
-    public List<Task> getTasksAssignedToUser(Integer id){
+    public List<Task> getTasksAssignedToUser(){
+        var auth  = SecurityContextHolder.getContext().getAuthentication();
+        var principal = (UserPrincipal) auth.getPrincipal();
+        int id = principal.getUser().getUserId();
+
         return taskRepository.findByAssignedToUser_UserId(id);
     }
 }

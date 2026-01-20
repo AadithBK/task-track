@@ -3,9 +3,14 @@ package com.workflowmanagement.task_track.service;
 import com.workflowmanagement.task_track.Exceptions.InvalidCredentialsException;
 import com.workflowmanagement.task_track.Exceptions.UserAlreadyExistsException;
 import com.workflowmanagement.task_track.config.JwtUtil;
+import com.workflowmanagement.task_track.controller.UserController;
 import com.workflowmanagement.task_track.model.User;
+import com.workflowmanagement.task_track.model.UserPrincipal;
 import com.workflowmanagement.task_track.repository.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -20,6 +25,8 @@ public class UserService {
 
     @Autowired
     private JwtUtil jwtUtil;
+
+    private static final Logger log = LoggerFactory.getLogger(UserController.class);
 
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
 
@@ -43,6 +50,10 @@ public class UserService {
     }
 
     public List<User> getAllUsers() {
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        var principal = (UserPrincipal) auth.getPrincipal();
+        User current = principal.getUser();
+        log.info("current user id " + current.getUserId());
         return userRepository.findAll();
     }
 

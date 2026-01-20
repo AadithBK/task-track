@@ -36,9 +36,9 @@ public class TaskController {
         return ResponseEntity.ok(taskList);
     }
 
-    @GetMapping("/gettasksofuser/{id}")
-    public ResponseEntity<List<Task>> getAllTasksForUser(@Valid @PathVariable int id){
-        List<Task> taskList = taskService.getTasksAssignedToUser(id);
+    @GetMapping("/gettasksofuser")
+    public ResponseEntity<List<Task>> getAllTasksForUser(){
+        List<Task> taskList = taskService.getTasksAssignedToUser();
         return ResponseEntity.ok(taskList);
     }
 

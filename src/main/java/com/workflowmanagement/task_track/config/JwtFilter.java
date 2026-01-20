@@ -1,5 +1,6 @@
 package com.workflowmanagement.task_track.config;
 
+import com.workflowmanagement.task_track.service.UserDetailsServiceImpl;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -20,6 +21,9 @@ public class JwtFilter extends OncePerRequestFilter {
     @Autowired
     private JwtUtil jwtUtil;
 
+    @Autowired
+    private UserDetailsServiceImpl userDetailsService;
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
@@ -36,9 +40,9 @@ public class JwtFilter extends OncePerRequestFilter {
                 String email = claims.getSubject();
 
                 if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-
+                    var userDetails = userDetailsService.loadUserByUsername(email);
                     UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                            email, null, Collections.emptyList());//Create an Authentication object for Spring Security
+                            userDetails, null, Collections.emptyList());//Create an Authentication object for Spring Security
 
 
                     SecurityContextHolder.getContext().setAuthentication(authentication);// Set the authentication in the security context
