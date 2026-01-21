@@ -141,19 +141,4 @@ A detailed ER diagram can be added as needed.
 - Configure workflows
 - Generate organization-wide reports
 
----
 
-## 8. Future Enhancements
-- Role-based UI customization
-- Automated workflow creation templates
-- AI-based productivity insights
-
----
-
-## 9. License
-MIT License (customize based on organization requirements)
-
----
-
-## 10. Author
-TaskTrack Internal Workflow System – Development Team
