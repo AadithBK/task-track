@@ -106,8 +106,8 @@ public class TaskService {
         }
     }
 
-    public void changeStatusOnDeletion(Task task){
-        task.setStatus(TaskStatus.BLOCKED);
+    public void changeStatusOnDeletion(Task task , TaskStatus taskStatus){
+        task.setStatus(taskStatus);
     }
 
     public boolean deleteTaskById(Integer id) {
@@ -115,7 +115,7 @@ public class TaskService {
         if(optTask.isPresent())
         {
             Task task = optTask.get();
-            changeStatusOnDeletion(task);
+            changeStatusOnDeletion(task,TaskStatus.BLOCKED);
             taskRepository.save(task);
             return true;
         }
