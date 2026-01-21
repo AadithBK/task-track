@@ -97,20 +97,8 @@ Provides real-time in-app alerts for task deadlines and workflow updates.
 
 ---
 
-## 5. Deployment Strategy
-### **Local Development**
-- Angular/React frontend
-- Spring Boot or ASP.NET Core backend
-- MySQL/PostgreSQL local DB
 
-### **Production**
-- On-premise or private cloud deployment
-- Secure APIs
-- No external integrations (email/SMS not included)
-
----
-
-## 6. Database Tables
+## 5. Database Tables
 - User
 - Task
 - SubTask
@@ -124,7 +112,7 @@ A detailed ER diagram can be added as needed.
 
 ---
 
-## 7. User Interface Overview
+## 6. User Interface Overview
 ### **Employee Dashboard**
 - View assigned tasks
 - Update task status
