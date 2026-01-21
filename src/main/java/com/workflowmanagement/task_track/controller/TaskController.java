@@ -29,7 +29,8 @@ public class TaskController {
     @GetMapping("/all")
     public ResponseEntity<CustomJSONResponse<List<TaskDto>>> getAllTasks() {
         List<TaskDto> taskList = taskService.getAllTasks();
-        return new ResponseEntity<>(new CustomJSONResponse<>("tasks fetched successfully", "", CustomStatus.OK, taskList), HttpStatus.OK);
+        ResponseEntity<CustomJSONResponse<List<TaskDto>>> tasksFetchedSuccessfully = new ResponseEntity<>(new CustomJSONResponse<>("tasks fetched successfully", "", CustomStatus.OK, taskList), HttpStatus.OK);
+        return tasksFetchedSuccessfully;
     }
 
     @GetMapping("createdby/{id}")
@@ -46,7 +47,8 @@ public class TaskController {
 
     @PutMapping("update/{id}")
     public ResponseEntity<CustomJSONResponse<TaskDto>> updateTaskById(@Valid @PathVariable Integer id, @RequestBody TaskDto taskDto) {
-        return new ResponseEntity<>(new CustomJSONResponse<>("", "", CustomStatus.OK, taskDto), HttpStatus.OK);
+        TaskDto taskDto1 = taskService.updateTaskById(taskDto);
+        return new ResponseEntity<>(new CustomJSONResponse<>("", "", CustomStatus.OK, taskDto1), HttpStatus.OK);
     }
 
     @DeleteMapping("delete/{id}")
