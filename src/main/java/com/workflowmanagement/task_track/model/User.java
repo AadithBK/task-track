@@ -13,7 +13,6 @@ import lombok.NoArgsConstructor;
 import java.util.ArrayList;
 import java.util.List;
 
-@Data // Data includes Getter, Setter, and RequiredArgsConstructor
 @Entity
 @Table(name = "users")
 @Data

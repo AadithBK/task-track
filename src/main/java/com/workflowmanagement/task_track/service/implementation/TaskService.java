@@ -1,4 +1,4 @@
-package com.workflowmanagement.task_track.service;
+package com.workflowmanagement.task_track.service.implementation;
 
 import com.workflowmanagement.task_track.dto.TaskCreateDto;
 import com.workflowmanagement.task_track.dto.TaskDto;
@@ -9,8 +9,9 @@ import com.workflowmanagement.task_track.model.User;
 import com.workflowmanagement.task_track.model.UserPrincipal;
 import com.workflowmanagement.task_track.repository.TaskRepository;
 import com.workflowmanagement.task_track.repository.UserRepository;
+import com.workflowmanagement.task_track.service.ITaskService;
 import jakarta.persistence.EntityNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -20,28 +21,17 @@ import java.util.Optional;
 
 
 @Service
-public class TaskService {
-
-
+@RequiredArgsConstructor
+public class TaskService implements ITaskService {
     private final TaskMapper taskMapper;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private UserService userService;
-
-    @Autowired
-    private TaskRepository taskRepository;
-
-    public TaskService(TaskMapper taskMapper){
-        this.taskMapper = taskMapper;
-    }
+    private final UserRepository userRepository;
+    private final UserService userService;
+    private final TaskRepository taskRepository;
 
     public TaskCreateDto createTask(TaskCreateDto task){
 
-        Optional<User> optAssignedUser = userService.getUserById(task.getAssignedToUserId());
-        Optional<User> optCreatedUser = userService.getUserById(task.getCreatedByUserId());
+        Optional<User> optAssignedUser = userService.getUserObjById(task.getAssignedToUserId());
+        Optional<User> optCreatedUser = userService.getUserObjById(task.getCreatedByUserId());
 
         if (optAssignedUser.isPresent() && optCreatedUser.isPresent() ){
             User assignedToUser = optAssignedUser.get();
@@ -80,7 +70,7 @@ public class TaskService {
     public List<TaskDto> getTasksAssignedToUser(){
         var auth  = SecurityContextHolder.getContext().getAuthentication();
         var principal = (UserPrincipal) auth.getPrincipal();
-        int id = principal.getUser().getUserId();
+        int id = principal.user().getUserId();
 
         List<Task> taskList =  taskRepository.findByAssignedToUser_UserId(id);
         return taskMapper.toDtoList(taskList);

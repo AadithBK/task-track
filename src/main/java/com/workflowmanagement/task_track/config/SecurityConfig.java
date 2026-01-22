@@ -1,7 +1,6 @@
 package com.workflowmanagement.task_track.config;
 
 //import com.workflowmanagement.task_track.Exceptions.CustomSecurityAccessDeniedHandler;
-import com.workflowmanagement.task_track.service.UserDetailsServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

@@ -14,11 +14,11 @@ import java.util.Map;
 @Component
 public class JwtUtil {
     @Value("${JWT_SECRET}") // This reads from your .env file
-    private String SECRET;
-    private final long EXPIRATION_TIME = 3600000; // 1 hour
+    private  String secret;
+    private static final long EXPIRATION_TIME = 3600000; // 1 hour
 
     private Key getSigningKey() {
-        return Keys.hmacShaKeyFor(SECRET.getBytes());
+        return Keys.hmacShaKeyFor(secret.getBytes());
     }
 
     public String generateToken(String email, String role) {

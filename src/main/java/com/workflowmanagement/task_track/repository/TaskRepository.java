@@ -1,6 +1,5 @@
 package com.workflowmanagement.task_track.repository;
 
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import com.workflowmanagement.task_track.model.Task;
