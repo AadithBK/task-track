@@ -35,10 +35,6 @@ public class SecurityConfig {
 //        this.accessDeniedHandler = accessDeniedHandler;
 //    }
 
-//    public SecurityConfig(UserDetailsServiceImpl userDetailsService, JwtFilter jwtFilter) {
-//        this.userDetailsService = userDetailsService;
-//        this.jwtFilter = jwtFilter;
-//    }
 
 
 
@@ -63,7 +59,7 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/users/signup","/api/users/login").permitAll()
+                        .requestMatchers("/api/users/signup","/api/users/login" ,"/api/users/getAllUsers" ).permitAll()
                         .requestMatchers("/error").permitAll()
                         .anyRequest().authenticated()
                 )

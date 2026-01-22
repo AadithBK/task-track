@@ -38,7 +38,6 @@ public class UserController  {
     public ResponseEntity<CustomJSONResponse> login(@Valid @RequestBody LoginRequest loginRequest) {
         // Now Spring only checks for email and password!
         String token = userService.loginUser(loginRequest.getEmail(), loginRequest.getPassword());
-//        return CustomJSONResponse.customJSONResponseWithData(CustomStatus.OK, "User Created", null,  token );
         return new ResponseEntity( new CustomJSONResponse<>("", null,CustomStatus.OK, token ),HttpStatus.OK);
     }
 

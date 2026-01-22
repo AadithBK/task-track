@@ -1,5 +1,6 @@
 package com.workflowmanagement.task_track.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.workflowmanagement.task_track.enums.Department;
 import com.workflowmanagement.task_track.enums.Role;
 import com.workflowmanagement.task_track.enums.Status;
@@ -9,6 +10,10 @@ import lombok.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
+import java.util.List;
+
+@Data // Data includes Getter, Setter, and RequiredArgsConstructor
 @Entity
 @Table(name = "users")
 @Data
@@ -37,6 +42,16 @@ public class User {
     @Column(nullable = false)
     @NotBlank(message = "Password is required")
     private String password;
+
+    @OneToMany(mappedBy = "assignedToUser" , cascade = CascadeType.ALL)
+    @Column(nullable = false)
+    @JsonIgnore
+    private List<Task> assignedTasks = new ArrayList<>();
+
+    @OneToMany(mappedBy = "createdByUser" , cascade = CascadeType.ALL)
+    @Column(nullable = false)
+    @JsonIgnore
+    private List<Task> createdTasks = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = true) // Changed: Role starts as NULL

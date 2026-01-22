@@ -27,6 +27,10 @@ public class UserPrincipal implements UserDetails {
         return user.getPassword();
     }
 
+    public User getUser(){
+        return user;
+    }
+
     @Override
     public String getUsername() {
         return user.getEmail(); // We use email as the username for login
