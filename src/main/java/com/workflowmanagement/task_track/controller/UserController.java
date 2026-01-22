@@ -3,7 +3,7 @@ package com.workflowmanagement.task_track.controller;
 import com.workflowmanagement.task_track.dto.LoginRequest;
 import com.workflowmanagement.task_track.model.User;
 import com.workflowmanagement.task_track.service.UserService;
-import com.workflowmanagement.task_track.util.CustomStatus;
+import com.workflowmanagement.task_track.enums.CustomStatus;
 
 import com.workflowmanagement.task_track.util.CustomJSONResponse;
 import jakarta.validation.Valid;
@@ -13,7 +13,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/users")
