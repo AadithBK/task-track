@@ -1,9 +1,11 @@
 package com.workflowmanagement.task_track.exceptions;
 
-import com.workflowmanagement.task_track.util.CustomStatus;
+import com.workflowmanagement.task_track.enums.CustomStatus;
 import com.workflowmanagement.task_track.util.CustomJSONResponse;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -68,6 +70,13 @@ public class GlobalExceptionHandler {
 
         return new ResponseEntity<>(new CustomJSONResponse<>(null, ex.getMessage(), CustomStatus.ERR, null), HttpStatus.BAD_REQUEST);
     }
+
+    @ExceptionHandler(EntityNotFoundException.class)
+    public  ResponseEntity<CustomJSONResponse> handleEntityNotFound(EntityNotFoundException ex) {
+
+        return new ResponseEntity<>(new CustomJSONResponse<>(null, ex.getMessage(), CustomStatus.ERR, null), HttpStatus.NOT_FOUND);
+    }
+
 
 
 }
