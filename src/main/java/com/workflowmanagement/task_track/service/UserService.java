@@ -50,10 +50,6 @@ public class UserService {
     }
 
     public List<User> getAllUsers() {
-        var auth = SecurityContextHolder.getContext().getAuthentication();
-        var principal = (UserPrincipal) auth.getPrincipal();
-        User current = principal.getUser();
-        log.info("current user id " + current.getUserId());
         return userRepository.findAll();
     }
 
