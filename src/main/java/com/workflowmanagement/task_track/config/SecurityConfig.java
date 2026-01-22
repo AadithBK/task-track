@@ -1,5 +1,6 @@
 package com.workflowmanagement.task_track.config;
 
+//import com.workflowmanagement.task_track.Exceptions.CustomSecurityAccessDeniedHandler;
 import com.workflowmanagement.task_track.service.UserDetailsServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -8,6 +9,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -17,6 +19,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 public class SecurityConfig {
 
     @Autowired
@@ -25,6 +28,12 @@ public class SecurityConfig {
     @Autowired
     private UserDetailsService userDetailsService;
 
+    // 1. Inject the handler
+//    private final CustomSecurityAccessDeniedHandler accessDeniedHandler;
+//
+//    public SecurityConfig(CustomSecurityAccessDeniedHandler accessDeniedHandler) {
+//        this.accessDeniedHandler = accessDeniedHandler;
+//    }
 
 
 
@@ -53,7 +62,9 @@ public class SecurityConfig {
                         .requestMatchers("/api/users/signup","/api/users/login" ,"/api/users/getAllUsers" ).permitAll()
                         .requestMatchers("/error").permitAll()
                         .anyRequest().authenticated()
-                ).addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+                )
+
+        .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 }
