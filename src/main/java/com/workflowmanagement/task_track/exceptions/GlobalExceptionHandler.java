@@ -1,4 +1,4 @@
-package com.workflowmanagement.task_track.Exceptions;
+package com.workflowmanagement.task_track.exceptions;
 
 import com.workflowmanagement.task_track.util.CustomStatus;
 import com.workflowmanagement.task_track.util.CustomJSONResponse;
@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.nio.file.AccessDeniedException;
-import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {

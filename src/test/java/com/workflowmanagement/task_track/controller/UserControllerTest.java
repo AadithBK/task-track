@@ -3,7 +3,7 @@ package com.workflowmanagement.task_track.controller;
 
 import com.workflowmanagement.task_track.dto.LoginRequest;
 import com.workflowmanagement.task_track.model.User;
-import com.workflowmanagement.task_track.service.UserService;
+import com.workflowmanagement.task_track.service.implementation.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

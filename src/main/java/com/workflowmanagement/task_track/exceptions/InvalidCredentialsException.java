@@ -1,4 +1,4 @@
-package com.workflowmanagement.task_track.Exceptions;
+package com.workflowmanagement.task_track.exceptions;
 
 public class InvalidCredentialsException extends RuntimeException {
     public InvalidCredentialsException(String message) {

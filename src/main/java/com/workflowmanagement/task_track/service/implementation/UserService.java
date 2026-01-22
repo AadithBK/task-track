@@ -1,19 +1,16 @@
-package com.workflowmanagement.task_track.service;
+package com.workflowmanagement.task_track.service.implementation;
 
-import com.workflowmanagement.task_track.Exceptions.InvalidCredentialsException;
-import com.workflowmanagement.task_track.Exceptions.UserAlreadyExistsException;
+import com.workflowmanagement.task_track.exceptions.InvalidCredentialsException;
+import com.workflowmanagement.task_track.exceptions.UserAlreadyExistsException;
 import com.workflowmanagement.task_track.config.JwtUtil;
 import com.workflowmanagement.task_track.dto.AdminActivationDto;
 import com.workflowmanagement.task_track.dto.SignupRequestDto;
 import com.workflowmanagement.task_track.dto.UserResponseDto;
 import com.workflowmanagement.task_track.enums.Status;
 import com.workflowmanagement.task_track.model.User;
-import com.workflowmanagement.task_track.model.UserPrincipal;
 import com.workflowmanagement.task_track.repository.UserRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.context.SecurityContextHolder;
+import com.workflowmanagement.task_track.service.IUserService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -21,15 +18,13 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-public class UserService {
+@RequiredArgsConstructor
+public class UserService implements IUserService {
 
-    @Autowired
-    private UserRepository userRepository;
+    private final  UserRepository userRepository;
 
-    @Autowired
-    private JwtUtil jwtUtil;
+    private final JwtUtil jwtUtil;
 
-    private static final Logger log = LoggerFactory.getLogger(UserService.class);
 
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
 
@@ -61,13 +56,9 @@ public class UserService {
     public String loginUser(String email, String password) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new InvalidCredentialsException("User does not exist"));
-        System.out.println(email);
-        System.out.println("Stored Hash in DB: " + user.getPassword());
 
         if(user.getStatus()!= Status.ACTIVE)
-        {
             throw new RuntimeException("Account is INACTIVE. Awaiting Admin approval.");
-        }
         if (!encoder.matches(password, user.getPassword())) {
             throw new InvalidCredentialsException("Invalid credentials: Password does not match.");
         }
@@ -85,6 +76,9 @@ public class UserService {
 
     public Optional<UserResponseDto> getUserById(Integer id) {
         return userRepository.findById(id).map(this::mapToResponseDto);
+    }
+    public Optional<User> getUserObjById(Integer id) {
+        return userRepository.findById(id);
     }
 
     public Optional<UserResponseDto> updateUserById(Integer id, User user) {
