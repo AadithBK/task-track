@@ -9,11 +9,11 @@ import lombok.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@AllArgsConstructor
-@NoArgsConstructor
-@Data // Data includes Getter, Setter, and RequiredArgsConstructor
 @Entity
 @Table(name = "users")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,12 +25,12 @@ public class User {
     @Pattern(regexp = "^[a-zA-Z]+$", message = "Username can only contain letters, numbers, and underscores")
     private String userName;
 
-//    @Email(message = "Please provide a valid email address")
-      @Pattern(
-        regexp = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$",
-        message = "Enter the valid EmailId"
-      )
-      @NotBlank(message = "Email is required")
+    //    @Email(message = "Please provide a valid email address")
+    @Pattern(
+            regexp = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$",
+            message = "Enter the valid EmailId"
+    )
+    @NotBlank(message = "Email is required")
     @Column(nullable = false, unique = true)
     private String email;
 
@@ -39,8 +39,7 @@ public class User {
     private String password;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    @NotNull(message = "Role is required")
+    @Column(nullable = true) // Changed: Role starts as NULL
     private Role role;
 
     @Enumerated(EnumType.STRING)
@@ -50,12 +49,5 @@ public class User {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    @NotNull(message = "Status is required")
-    private Status status;
+    private Status status = Status.INACTIVE; // Default set here
 }
-
-//{
-//status: "ok" | "fuckedup" | "err",
-//message: "Server message" | null,
-//error: null|"error to client"
-//}
