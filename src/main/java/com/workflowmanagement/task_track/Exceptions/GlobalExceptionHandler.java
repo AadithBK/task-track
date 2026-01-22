@@ -9,18 +9,42 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.nio.file.AccessDeniedException;
 import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(UserAlreadyExistsException.class)
-
     public ResponseEntity<CustomJSONResponse> handleUserExists(UserAlreadyExistsException ex)
     {
 //        return CustomJSONResponse.customJSONResponse(CustomStatus.ERR, null, ex.getMessage());
     return new ResponseEntity<>(new CustomJSONResponse<>(null, ex.getMessage(), CustomStatus.ERR, null), HttpStatus.CONFLICT);
     }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<CustomJSONResponse<Object>> handleAccessDenied(AccessDeniedException ex) {
+        CustomJSONResponse<Object> response = new CustomJSONResponse<>(
+                null,
+                "Permission Denied: " + ex.getMessage(),
+                CustomStatus.ERR,
+                null
+        );
+        return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
+    }
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<CustomJSONResponse<Object>> handleRuntimeException(RuntimeException ex) {
+        // This catches the "Account is INACTIVE" error from your UserService
+        CustomJSONResponse<Object> response = new CustomJSONResponse<>(
+                null,
+                ex.getMessage(), // This will be "Account is INACTIVE. Awaiting Admin approval."
+                CustomStatus.ERR,
+                null
+        );
+        return new ResponseEntity<>(response, HttpStatus.FORBIDDEN); // 403 Forbidden is appropriate here
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
 
     public ResponseEntity<CustomJSONResponse> handleIllegalArgument(IllegalArgumentException ex) {
