@@ -11,5 +11,4 @@ public interface TaskRepository extends JpaRepository<Task,Integer>{
     List<Task> findByCreatedByUser_UserId(Integer userId);
     List<Task> findByAssignedToUser_UserId(Integer userId);
 
-
 }

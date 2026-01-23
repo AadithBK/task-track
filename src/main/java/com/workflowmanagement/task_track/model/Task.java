@@ -1,6 +1,7 @@
 package com.workflowmanagement.task_track.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.workflowmanagement.task_track.enums.taskenum.TaskPriority;
 import com.workflowmanagement.task_track.enums.taskenum.TaskStatus;
 import jakarta.persistence.*;
@@ -8,6 +9,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import java.time.*;
+import java.util.List;
 
 @Builder
 @Data
@@ -17,7 +19,14 @@ import java.time.*;
 public class Task {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+//    @OneToMany(fetch = FetchType.EAGER, mappedBy = "subTask")
+//    @JoinColumn(name="task_id_fk", referencedColumnName = "taskId", nullable = false, foreignKey =  @ForeignKey(name = "fk_sub_task_task_id"))
+//@OneToMany(mappedBy = "taskId")
     private Integer taskId;
+//    @OneToMany(mappedBy = "taskId", fetch = FetchType.LAZY)
+//    @ToString.Exclude
+//    @EqualsAndHashCode.Exclude
+//    private List<SubTask> subTasks;
 
     @Column(nullable = false)
     @NotBlank(message = "Provide a title")
@@ -63,4 +72,8 @@ public class Task {
     @Column()
     @JsonFormat(shape = JsonFormat.Shape.STRING)
     private Instant dueDate ;
+
+//    @OneToMany(mappedBy = "taskId")
+//    @JsonManagedReference
+//    private List<SubTask> subTask;
 }
