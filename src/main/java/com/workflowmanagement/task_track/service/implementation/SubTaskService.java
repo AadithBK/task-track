@@ -1,9 +1,9 @@
-package com.workflowmanagement.task_track.service;
+package com.workflowmanagement.task_track.service.implementation;
 
 import com.workflowmanagement.task_track.dto.subTask.SubTaskCreateRequestDTO;
+import com.workflowmanagement.task_track.dto.subTask.SubTaskPatchReqDTO;
 import com.workflowmanagement.task_track.dto.subTask.SubTaskUpdateReqDTO;
 import com.workflowmanagement.task_track.enums.subTaskEnum.SubTaskStatusEnum;
-import com.workflowmanagement.task_track.interfaces.SubTaskServiceInterface;
 import com.workflowmanagement.task_track.model.SubTask;
 import com.workflowmanagement.task_track.model.Task;
 import com.workflowmanagement.task_track.model.User;
@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-public  class SubTaskService implements SubTaskServiceInterface {
+public  class SubTaskService implements com.workflowmanagement.task_track.service.ISubTaskService {
     @Autowired
     private SubTaskRepository subTaskRepository;
     @Autowired
@@ -37,10 +37,11 @@ private UserRepository userRepository;
                 .taskId(findParentTask)
                 .title(subTaskDTOObject.title())
                 .status(
-                        subTaskDTOObject.status() != null? SubTaskStatusEnum.valueOf(subTaskDTOObject.status()): SubTaskStatusEnum.OPEN)
+                        subTaskDTOObject.status() != null? SubTaskStatusEnum.valueOf(String.valueOf(subTaskDTOObject.status())): SubTaskStatusEnum.OPEN)
                 .assignedToUserId(findAssignedToUser)
                 .build();
 //        System.out.println(newSubTask.getTaskId() + " " + newSubTask.getAssignedToUserId().getUserId() + " " + newSubTask);
+
         return subTaskRepository.save(newSubTask);
 
 
@@ -49,6 +50,7 @@ private UserRepository userRepository;
     @Override
     public List<SubTask> getAllSubTasks(Integer taskId) {
         Task findParentTask = taskRepository.findById(taskId).orElseThrow(() -> new EntityNotFoundException("Parent Task does not exists"));
+
         return subTaskRepository.findAllByTaskId(findParentTask);
     }
 
@@ -59,7 +61,7 @@ private UserRepository userRepository;
 //        User mentionedUser = userRepository.findById(subTaskDTOObject.assignedToUserId()).orElseThrow(() -> new EntityNotFoundException("User does not exists"));
         var auth  = SecurityContextHolder.getContext().getAuthentication();
         var principal = (UserPrincipal) auth.getPrincipal();
-        int id = principal.getUser().getUserId();
+        int id = principal.user().getUserId();
 
         User mentionedUser = userRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("User does not exists"));
         Task findTask = taskRepository.findById(taskId).orElseThrow(() -> new EntityNotFoundException("Parent Task does not exists"));
@@ -99,7 +101,7 @@ private UserRepository userRepository;
     public void deleteSubTask(Integer taskId, Integer subTaskId) {
         var auth  = SecurityContextHolder.getContext().getAuthentication();
         var principal = (UserPrincipal) auth.getPrincipal();
-        int id = principal.getUser().getUserId();
+        int id = principal.user().getUserId();
 
         User mentionedUser = userRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("User does not exists"));
         Task findTask = taskRepository.findById(taskId).orElseThrow(() -> new EntityNotFoundException("Parent Task does not exists"));
@@ -116,7 +118,7 @@ private UserRepository userRepository;
     public void deleteAllSubTask(Integer taskId) {
         var auth  = SecurityContextHolder.getContext().getAuthentication();
         var principal = (UserPrincipal) auth.getPrincipal();
-        int id = principal.getUser().getUserId();
+        int id = principal.user().getUserId();
 
         User mentionedUser = userRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("User does not exists"));
         Task findTask = taskRepository.findById(taskId).orElseThrow(() -> new EntityNotFoundException("Parent Task does not exists"));
@@ -126,5 +128,26 @@ private UserRepository userRepository;
         } else {
             throw new ValidationException("Task is created by another user");
         }
+    }
+
+    @Override
+    @Transactional
+    public SubTask updateStatusForSubTask(Integer taskId, Integer subTaskId, SubTaskPatchReqDTO subTaskPatchReqDTO) {
+        var auth  = SecurityContextHolder.getContext().getAuthentication();
+        var principal = (UserPrincipal) auth.getPrincipal();
+        int id = principal.user().getUserId();
+
+        User mentionedUser = userRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("User does not exists"));
+        Task findTask = taskRepository.findById(taskId).orElseThrow(() -> new EntityNotFoundException("Parent Task does not exists"));
+        if(mentionedUser.getUserId().equals(findTask.getCreatedByUser().getUserId())) {
+            Optional<SubTask> subTask = subTaskRepository.findBySubTaskIdAndTaskId(subTaskId, findTask);
+            subTask.orElseThrow(() -> new EntityNotFoundException("Sub Task not found"));
+            SubTask st = subTask.get();
+            st.setStatus(subTaskPatchReqDTO.status());
+            return  st;
+        } else {
+            throw new ValidationException("Task is created by another user");
+        }
+
     }
 }

@@ -18,5 +18,4 @@ public enum SubTaskStatusEnum {
         }
         throw new IllegalArgumentException("Invalid Priority: ["+value+"].");
     }
-
 }

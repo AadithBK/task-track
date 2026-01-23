@@ -5,6 +5,7 @@ import com.workflowmanagement.task_track.model.Task;
 import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -20,4 +21,7 @@ public interface SubTaskRepository extends JpaRepository<SubTask, Integer> {
     @Modifying
     @Transactional
     void deleteAllByTaskId(Task findTask);
+
+//    @Query("select s from SubTask s join s.taskId t")
+//    List<SubTask> findAllTaskWithSubTask(Integer taskId);
 }

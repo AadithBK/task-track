@@ -1,5 +1,6 @@
 package com.workflowmanagement.task_track.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.workflowmanagement.task_track.enums.subTaskEnum.SubTaskStatusEnum;
 import jakarta.persistence.*;
@@ -37,6 +38,7 @@ public class SubTask {
     private String title;
 
     @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     private SubTaskStatusEnum status;
 
     @ManyToOne(fetch = FetchType.EAGER)

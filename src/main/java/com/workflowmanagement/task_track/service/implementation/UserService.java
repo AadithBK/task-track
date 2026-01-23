@@ -10,6 +10,7 @@ import com.workflowmanagement.task_track.enums.Status;
 import com.workflowmanagement.task_track.model.User;
 import com.workflowmanagement.task_track.repository.UserRepository;
 import com.workflowmanagement.task_track.service.IUserService;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -75,7 +76,9 @@ public class UserService implements IUserService {
     }
 
     public Optional<UserResponseDto> getUserById(Integer id) {
-        return userRepository.findById(id).map(this::mapToResponseDto);
+        return Optional.ofNullable(userRepository.findById(id)
+                .map(this::mapToResponseDto)
+                .orElseThrow(() -> new EntityNotFoundException("User Not Found")));
     }
     public Optional<User> getUserObjById(Integer id) {
         return userRepository.findById(id);
