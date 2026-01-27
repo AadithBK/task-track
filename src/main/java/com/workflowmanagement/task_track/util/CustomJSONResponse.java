@@ -1,5 +1,6 @@
 package com.workflowmanagement.task_track.util;
 
+import com.workflowmanagement.task_track.enums.CustomStatus;
 import jakarta.annotation.Nullable;
 import lombok.Getter;
 
@@ -22,43 +23,13 @@ public class CustomJSONResponse<T> {
     }
 
 
-//    public  Map<String, String> customJSONResponse(CustomStatus status, String message, String error) {
-//        HashMap<String, String> resBody = new HashMap<>();
-//        resBody.put( "message", message);
-//        resBody.put("error", error);
-//
-//
-//        switch (status) {
-//            case ERR:
-//                resBody.put("status", "err");
-//                break;
-//            case OK:
-//                resBody.put("status", "ok");
-//                break;
-//
-//        }
-//
-//        return  resBody;
-//
-//    }
+    public static <T> CustomJSONResponse<T> ok(String message, T data) {
+        return new CustomJSONResponse<>(message, null, CustomStatus.OK, data);
+    }
 
-//    public static ResponseEntity<T> customJSONResponseWithData(CustomStatus status, String message, String error, Object data) {
-//        HashMap<String, Object> resBody = new HashMap<>();
-//        resBody.put( "message", message);
-//        resBody.put("error", error);
-//        resBody.put("data", data);
-//
-//        switch (status) {
-//            case ERR:
-//                resBody.put("status", "err");
-//                break;
-//            case OK:
-//                resBody.put("status", "ok");
-//                break;
-//
-//        }
-//
-//        return  resBody;
-//
-//    }
+    // Static method for Errors
+    public static <T> CustomJSONResponse<T> err(String error) {
+        return new CustomJSONResponse<>(null, error, CustomStatus.ERR, null);
+    }
+
 }
