@@ -1,8 +1,10 @@
-package com.workflowmanagement.task_track.service;
+package com.workflowmanagement.task_track.service.implementation;
 
 import com.workflowmanagement.task_track.model.User;
 import com.workflowmanagement.task_track.model.UserPrincipal;
 import com.workflowmanagement.task_track.repository.UserRepository;
+import com.workflowmanagement.task_track.service.IUserDetailsService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -10,10 +12,11 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 @Service
-public class UserDetailsServiceImpl implements UserDetailsService {
+@RequiredArgsConstructor
+public class UserDetailsServiceImpl implements UserDetailsService, IUserDetailsService {
 
     @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
