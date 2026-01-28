@@ -4,6 +4,7 @@ package com.workflowmanagement.task_track.exceptions;
 import com.workflowmanagement.task_track.exceptions.InvalidCredentialsException;
 import com.workflowmanagement.task_track.exceptions.UserAlreadyExistsException;
 import com.workflowmanagement.task_track.util.CustomJSONResponse;
+import jakarta.validation.ValidationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -49,5 +50,13 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(CustomJSONResponse.err(ex.getMessage()), HttpStatus.BAD_REQUEST);
     }
 
+
+    @ExceptionHandler(ValidationException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public  ResponseEntity<CustomJSONResponse>  handleValidationExceptions(ValidationException ex) {
+
+
+        return new ResponseEntity<>(CustomJSONResponse.err(ex.getMessage()), HttpStatus.BAD_REQUEST);
+    }
 
 }
