@@ -1,6 +1,6 @@
 package com.workflowmanagement.task_track.config;
 
-import com.workflowmanagement.task_track.service.UserDetailsServiceImpl;
+import com.workflowmanagement.task_track.service.implementation.UserDetailsServiceImpl;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -13,7 +13,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.Collections;
 
 @Component
 public class JwtFilter extends OncePerRequestFilter {
@@ -42,7 +41,7 @@ public class JwtFilter extends OncePerRequestFilter {
                 if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                     var userDetails = userDetailsService.loadUserByUsername(email);
                     UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                            userDetails, null, Collections.emptyList());//Create an Authentication object for Spring Security
+                            userDetails, null, userDetails.getAuthorities());//Create an Authentication object for Spring Security
 
 
                     SecurityContextHolder.getContext().setAuthentication(authentication);// Set the authentication in the security context
