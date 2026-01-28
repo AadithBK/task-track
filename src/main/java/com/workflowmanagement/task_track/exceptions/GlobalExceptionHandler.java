@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.Map;
 
 @RestControllerAdvice
@@ -49,5 +50,9 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(CustomJSONResponse.err(ex.getMessage()), HttpStatus.BAD_REQUEST);
     }
 
-
+    @ExceptionHandler(SQLIntegrityConstraintViolationException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ResponseEntity<CustomJSONResponse> handleIntegrityNotValidException(SQLIntegrityConstraintViolationException ex) {
+        return  new ResponseEntity<>(CustomJSONResponse.err(ex.getMessage()), HttpStatus.CONFLICT);
+    }
 }
