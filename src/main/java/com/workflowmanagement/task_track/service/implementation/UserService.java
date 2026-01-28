@@ -12,6 +12,7 @@ import com.workflowmanagement.task_track.repository.UserRepository;
 import com.workflowmanagement.task_track.service.IUserService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -22,8 +23,10 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class UserService implements IUserService {
 
+    @Autowired
     private final  UserRepository userRepository;
 
+    @Autowired
     private final JwtUtil jwtUtil;
 
 
