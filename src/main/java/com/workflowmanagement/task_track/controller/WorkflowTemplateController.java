@@ -3,8 +3,8 @@ package com.workflowmanagement.task_track.controller;
 import com.workflowmanagement.task_track.dto.workflow.template.CreateTemplateDto;
 import com.workflowmanagement.task_track.dto.workflow.template.ResponseWorkflowDto;
 import com.workflowmanagement.task_track.dto.workflow.template.UpdateTemplateDto;
-import com.workflowmanagement.task_track.model.workflow.template.WorkflowTemplate;
-import com.workflowmanagement.task_track.service.implementation.WorkflowService;
+import com.workflowmanagement.task_track.service.implementation.WorkflowTemplateService;
+import com.workflowmanagement.task_track.util.CustomJSONResponse;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -20,7 +20,7 @@ import java.util.List;
 public class WorkflowTemplateController {
 
     @Autowired
-    private WorkflowService workflowService;
+    private WorkflowTemplateService workflowTemplateService;
 
 
 
@@ -37,33 +37,34 @@ public class WorkflowTemplateController {
      */
 
     @PostMapping
-    @Valid
+
     @ResponseStatus(HttpStatus.CREATED)
-    public ResponseWorkflowDto createWorkFlowTemplate(@RequestBody CreateTemplateDto reqBody){
-    return workflowService.createTemplate(reqBody);
+    public CustomJSONResponse<ResponseWorkflowDto> createWorkFlowTemplate(@Valid @RequestBody CreateTemplateDto reqBody){
+    return CustomJSONResponse.ok("New Template created",workflowTemplateService.createTemplate(reqBody));
     }
 
 
     @Valid
     @GetMapping("/{templateId}")
     @ResponseStatus(HttpStatus.OK)
-    public ResponseWorkflowDto getWorkFlowTemplate(@PathVariable Integer templateId) {
-        return  workflowService.getWorkflowTemplate(templateId);
+    public CustomJSONResponse<ResponseWorkflowDto> getWorkFlowTemplate(@Valid @PathVariable Integer templateId) {
+        return  CustomJSONResponse.ok(null,workflowTemplateService.getWorkflowTemplate(templateId));
     }
 
     @GetMapping("/all")
-    public List<ResponseWorkflowDto> getAllWorkflows() {
-        return workflowService.getAllWorkFlowTemplates();
+    public CustomJSONResponse<List<ResponseWorkflowDto>> getAllWorkflows() {
+        return CustomJSONResponse.ok(null,workflowTemplateService.getAllWorkFlowTemplates());
     }
 
     @PatchMapping("/{templateId}/{templateStepId}")
-
+@ResponseStatus(HttpStatus.CREATED)
     public  void updateWorkflowData(@PathVariable Integer templateId, @PathVariable Integer templateStepId, @RequestBody UpdateTemplateDto updateTemplateDto) {
-        workflowService.updateWorkFlowTemplate(templateId, templateStepId, updateTemplateDto);
+        workflowTemplateService.updateWorkFlowTemplate(templateId, templateStepId, updateTemplateDto);
     }
 
     @DeleteMapping("/{templateId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteWorkFlow(@PathVariable Integer templateId) {
-        workflowService.deleteWorkFlowTemplate(templateId);
+        workflowTemplateService.deleteWorkFlowTemplate(templateId);
     }
 }

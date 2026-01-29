@@ -2,6 +2,7 @@ package com.workflowmanagement.task_track.controller;
 
 import com.workflowmanagement.task_track.dto.TaskCreateDto;
 import com.workflowmanagement.task_track.dto.TaskDto;
+import com.workflowmanagement.task_track.model.Task;
 import com.workflowmanagement.task_track.service.implementation.TaskService;
 import com.workflowmanagement.task_track.util.CustomJSONResponse;
 
@@ -24,8 +25,8 @@ public class TaskController {
 
     @PostMapping("create")
     @PreAuthorize("hasRole('MANAGER')")
-    public ResponseEntity<CustomJSONResponse<TaskCreateDto>> createTask(@Valid @RequestBody TaskCreateDto taskCreateDto) {
-        TaskCreateDto createdTask = taskService.createTask(taskCreateDto);
+    public ResponseEntity<CustomJSONResponse<TaskDto>> createTask(@Valid @RequestBody TaskCreateDto taskCreateDto) {
+        TaskDto createdTask = taskService.createTask(taskCreateDto);
 
         return new ResponseEntity<>(CustomJSONResponse.ok(null,createdTask), HttpStatus.CREATED);
     }
@@ -51,6 +52,7 @@ public class TaskController {
         List<TaskDto> taskList = taskService.getTasksAssignedToUser();
         return new ResponseEntity<>(CustomJSONResponse.ok("tasks fetched successfully",  taskList), HttpStatus.OK);
     }
+
 
     @PutMapping("update/{id}")
     @PreAuthorize("hasRole('MANAGER')")
