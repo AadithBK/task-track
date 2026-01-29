@@ -10,5 +10,5 @@ import lombok.Data;
 public class HelperEmbeddedStepsDTO {
 
     private String workflowStepName;
-    private int workflowStepPosition;
+    private Integer workflowStepPosition;
 }

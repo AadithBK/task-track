@@ -4,6 +4,7 @@ package com.workflowmanagement.task_track.exceptions;
 import com.workflowmanagement.task_track.exceptions.InvalidCredentialsException;
 import com.workflowmanagement.task_track.exceptions.UserAlreadyExistsException;
 import com.workflowmanagement.task_track.util.CustomJSONResponse;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -54,5 +55,17 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.CONFLICT)
     public ResponseEntity<CustomJSONResponse> handleIntegrityNotValidException(SQLIntegrityConstraintViolationException ex) {
         return  new ResponseEntity<>(CustomJSONResponse.err(ex.getMessage()), HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(EntityNotFoundException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ResponseEntity<CustomJSONResponse> handleEntitynotFound(EntityNotFoundException ex) {
+        return  new ResponseEntity<>(CustomJSONResponse.err(ex.getMessage()), HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(WorkflowUpdateException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseEntity<CustomJSONResponse> handleEntitynotFound(WorkflowUpdateException ex) {
+        return  new ResponseEntity<>(CustomJSONResponse.err(ex.getMessage()), HttpStatus.NOT_FOUND);
     }
 }

@@ -9,10 +9,11 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.boot.context.properties.bind.DefaultValue;
 
 import java.util.List;
 
-@Builder
+@Builder(toBuilder = true)
 @Entity
 @Data
 @NoArgsConstructor
@@ -35,6 +36,8 @@ public class WorkflowTemplate {
     @Min(value = 1, message = "Position must be at least 1")
     private int workflowTemplateSteps;
 
+    @Column(nullable = false)
+    private boolean status = true;
 @OneToMany(mappedBy = "workflowTemplate", orphanRemoval = true, cascade = CascadeType.ALL)
     private List<WorkflowTemplateStep> workflowSteps;
 }

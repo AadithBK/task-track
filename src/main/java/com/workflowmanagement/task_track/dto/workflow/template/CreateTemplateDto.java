@@ -11,10 +11,12 @@ import java.util.List;
 @Data
 public class CreateTemplateDto {
 
+//    private int workflowTemplateId;
     private String workflowTemplateName;
 
     @Size(min = 1, message = "Number of steps less than 1")
     private List<HelperEmbeddedStepsDTO> workflowSteps;
+
 
 }
 

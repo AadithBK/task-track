@@ -20,7 +20,7 @@ import org.hibernate.metamodel.mapping.ForeignKeyDescriptor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@Builder(toBuilder = true)
 @Table(
         uniqueConstraints = {
                 @UniqueConstraint(columnNames = {"workflow_id", "workflow_template_step_name"}),
@@ -40,7 +40,7 @@ public class WorkflowTemplateStep {
     @Min(value = 1, message = "Position must be at least 1" )
     private int workflowTemplateStepPosition;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name="workflow_id")
     private WorkflowTemplate workflowTemplate;
 }
