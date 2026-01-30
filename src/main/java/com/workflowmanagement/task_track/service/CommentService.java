@@ -1,17 +1,19 @@
 package com.workflowmanagement.task_track.service;
 
-import com.workflowmanagement.task_track.model.Comment;
 
+
+import com.workflowmanagement.task_track.dto.CommentDTO;
+import com.workflowmanagement.task_track.model.Comment;
 import java.util.List;
 
-public interface ICommentService {
+public interface CommentService {
 
     /**
      * Add a new comment to a task.
      * @param comment the Comment object to be saved
      * @return the saved Comment
      */
-    Comment addComment(Comment comment);
+    Comment addComment(CommentDTO comment);
 
     /**
      * Get all comments for a specific task.
