@@ -31,11 +31,8 @@ public class User {
     @Pattern(regexp = "^[a-zA-Z]+$", message = "Username can only contain letters, numbers, and underscores")
     private String userName;
 
-    //    @Email(message = "Please provide a valid email address")
-    @Pattern(
-            regexp = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$",
-            message = "Enter the valid EmailId"
-    )
+    @Email(message = "Enter the valid EmailId", regexp = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$")
+
     @NotBlank(message = "Email is required")
     @Column(nullable = false, unique = true)
     private String email;
