@@ -35,9 +35,9 @@ Provides real-time in-app alerts for task deadlines and workflow updates.
 ---
 
 ## 3. Architecture Overview
-- **Frontend:** Angular or React
-- **Backend:** REST API architecture (Spring Boot / .NET Core)
-- **Database:** MySQL / PostgreSQL / SQL Server
+- **Frontend:** Angular 
+- **Backend:** REST API architecture (Spring Boot )
+- **Database:** MySQL 
 
 ---
 
