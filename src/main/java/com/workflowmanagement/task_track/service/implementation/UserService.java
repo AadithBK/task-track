@@ -66,7 +66,7 @@ public class UserService implements IUserService {
 
 
         String roleName=(user.getRole()!=null?user.getRole().name():"NONE");
-        return jwtUtil.generateToken(user.getEmail(), roleName);
+        return jwtUtil.generateToken(user.getEmail(), user.getDepartment(), roleName);
     }
 
     public List<UserResponseDto> getAllUsers() {

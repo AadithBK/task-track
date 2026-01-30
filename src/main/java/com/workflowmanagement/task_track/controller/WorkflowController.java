@@ -5,9 +5,11 @@ import com.workflowmanagement.task_track.dto.ResponseTaskCreateDto;
 import com.workflowmanagement.task_track.dto.workflow.ResponseCreateNewWorkflowDTO;
 import com.workflowmanagement.task_track.dto.workflow.ResponseGetWorkflowByIDDTO;
 import com.workflowmanagement.task_track.dto.workflow.template.ResponseWorkflowDto;
+import com.workflowmanagement.task_track.enums.Department;
 import com.workflowmanagement.task_track.model.workflow.Workflow;
 import com.workflowmanagement.task_track.service.implementation.WorkflowService;
 import com.workflowmanagement.task_track.util.CustomJSONResponse;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -47,5 +49,10 @@ public class WorkflowController {
 @GetMapping("/{workflowId}")
     public CustomJSONResponse<ResponseGetWorkflowByIDDTO> getWorkflowById(@PathVariable Integer workflowId) {
         return  CustomJSONResponse.ok("", workflowService.getWorkflowById(workflowId));
+}
+@PreAuthorize("hasRole('ADMIN')")
+@GetMapping("/department/{department}")
+    public CustomJSONResponse<List<Workflow>> getWorkflowByDepartment(@Valid @PathVariable Department department) {
+    return  CustomJSONResponse.ok(null,workflowService.getWorkflowByDepartment(department));
 }
 }
