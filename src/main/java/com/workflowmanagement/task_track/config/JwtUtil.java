@@ -1,5 +1,6 @@
 package com.workflowmanagement.task_track.config;
 
+import com.workflowmanagement.task_track.enums.Department;
 import org.springframework.beans.factory.annotation.Value;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -15,15 +16,18 @@ import java.util.Map;
 public class JwtUtil {
     @Value("${JWT_SECRET}") // This reads from your .env file
     private  String secret;
+
+
     private static final long EXPIRATION_TIME = 3600000; // 1 hour
 
     private Key getSigningKey() {
         return Keys.hmacShaKeyFor(secret.getBytes());
     }
 
-    public String generateToken(String email, String role) {
+    public String generateToken(String email, Department department, String role) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("role", role);
+        claims.put("department", department);
         return Jwts.builder()
                 .setClaims(claims)
                 .setSubject(email)

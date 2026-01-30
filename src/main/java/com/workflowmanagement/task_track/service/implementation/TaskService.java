@@ -1,5 +1,6 @@
 package com.workflowmanagement.task_track.service.implementation;
 
+import com.workflowmanagement.task_track.dto.ResponseTaskCreateDto;
 import com.workflowmanagement.task_track.dto.TaskCreateDto;
 import com.workflowmanagement.task_track.dto.TaskDto;
 import com.workflowmanagement.task_track.enums.taskenum.TaskStatus;
@@ -7,8 +8,13 @@ import com.workflowmanagement.task_track.mapper.TaskMapper;
 import com.workflowmanagement.task_track.model.Task;
 import com.workflowmanagement.task_track.model.User;
 import com.workflowmanagement.task_track.model.UserPrincipal;
+import com.workflowmanagement.task_track.model.workflow.Workflow;
+import com.workflowmanagement.task_track.model.workflow.WorkflowStep;
+import com.workflowmanagement.task_track.model.workflow.template.WorkflowTemplate;
 import com.workflowmanagement.task_track.repository.TaskRepository;
 import com.workflowmanagement.task_track.repository.UserRepository;
+import com.workflowmanagement.task_track.repository.WorkflowRepository;
+import com.workflowmanagement.task_track.repository.WorkflowStepsRepository;
 import com.workflowmanagement.task_track.service.ITaskService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -27,11 +33,12 @@ public class TaskService implements ITaskService {
     private final UserRepository userRepository;
     private final UserService userService;
     private final TaskRepository taskRepository;
-
-    public TaskCreateDto createTask(TaskCreateDto task){
+    private final WorkflowStepsRepository workflowStepsRepository;
+    public TaskDto createTask(TaskCreateDto task){
 
         Optional<User> optAssignedUser = userService.getUserObjById(task.getAssignedToUserId());
         Optional<User> optCreatedUser = userService.getUserObjById(task.getCreatedByUserId());
+        WorkflowStep workflowStep = workflowStepsRepository.findById(task.getWorkflowStepId()).orElseThrow(() -> new EntityNotFoundException("Workflow Step with ID " + task.getWorkflowStepId() + " does not exist"));
 
         if (optAssignedUser.isPresent() && optCreatedUser.isPresent() ){
             User assignedToUser = optAssignedUser.get();
@@ -44,11 +51,12 @@ public class TaskService implements ITaskService {
                     .status(task.getStatus())
                     .priority(task.getPriority())
                     .dueDate(task.getDueDate())
+                    .workflowStep(workflowStep)
                     .build();
             assignedToUser.getAssignedTasks().add(createdTask);
             createdByUser.getCreatedTasks().add(createdTask);
             taskRepository.save(createdTask);
-            return task;
+            return taskMapper.toDto(createdTask);
         }
         else {
             throw new EntityNotFoundException("The given user id does not match with the records");

@@ -4,11 +4,13 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.workflowmanagement.task_track.enums.Department;
 import com.workflowmanagement.task_track.enums.Role;
 import com.workflowmanagement.task_track.enums.Status;
+import com.workflowmanagement.task_track.model.workflow.Workflow;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.jdbc.Work;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -61,4 +63,7 @@ public class User {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Status status = Status.INACTIVE; // Default set here
+
+
+
 }

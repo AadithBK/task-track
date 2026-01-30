@@ -1,6 +1,7 @@
 
 package com.workflowmanagement.task_track.service;
 
+import com.workflowmanagement.task_track.dto.ResponseTaskCreateDto;
 import com.workflowmanagement.task_track.dto.TaskCreateDto;
 import com.workflowmanagement.task_track.dto.TaskDto;
 
@@ -16,7 +17,7 @@ public interface ITaskService {
      * @return the same creation payload or a created representation (per your current impl returns TaskCreateDto)
      * @throws jakarta.persistence.EntityNotFoundException if user IDs don’t exist
      */
-    TaskCreateDto createTask(TaskCreateDto task);
+    TaskDto createTask(TaskCreateDto task);
 
     /**
      * @return all tasks mapped to TaskDto
