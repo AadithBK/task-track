@@ -70,6 +70,27 @@ public class TaskController {
         }
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
+    @GetMapping("/count/completed/user/{userId}")
+    public long getCompletedCountByUser(@PathVariable Integer userId) {
+        return taskService.getCompletedCountByUser(userId);
+    }
+
+    @GetMapping("/count/total/user/{userId}")
+    public long getTotalCountByUser(@PathVariable Integer userId) {
+        return taskService.getTotalCountByUser(userId);
+    }
+
+    @GetMapping("/count/completed/dept/{deptName}")
+    public long getCompletedCountByDept(@PathVariable String deptName) {
+        return taskService.getCompletedCountByDept(deptName);
+    }
+
+    @GetMapping("/count/total/dept/{deptName}")
+    public long getTotalCountByDept(@PathVariable String deptName) {
+        return taskService.getTotalCountByDept(deptName);
+    }
+
+
 
 
 }

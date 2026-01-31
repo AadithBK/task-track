@@ -20,14 +20,11 @@ public interface TaskRepository extends JpaRepository<Task,Integer>{
     long countByAssignedToUser_UserId(Integer userId);
     // Count completed tasks for all users in a specific department
 
+    // Count by Department (Nested: Task -> User -> Department)
+    // JPA maps this to: assignedToUser.department
+    long countByAssignedToUser_Department(Department department);
 
-        // Count tasks for a department by status
-        // Use the Department Enum type instead of String
-        @Query("SELECT COUNT(t) FROM Task t JOIN t.assignedToUser u WHERE u.department = :dept AND t.status = :status")
-        long countByDepartmentAndStatus(@Param("dept") Department dept, @Param("status") TaskStatus status);
-
-    @Query("SELECT COUNT(t) FROM Task t JOIN t.assignedToUser u WHERE u.department = :dept")
-    long countTotalByDepartment(@Param("dept") Department dept);
+    long countByAssignedToUser_DepartmentAndStatus(Department department, TaskStatus status);
 
 
 }

@@ -3,6 +3,7 @@ package com.workflowmanagement.task_track.service.implementation;
 import com.workflowmanagement.task_track.dto.ResponseTaskCreateDto;
 import com.workflowmanagement.task_track.dto.TaskCreateDto;
 import com.workflowmanagement.task_track.dto.TaskDto;
+import com.workflowmanagement.task_track.enums.Department;
 import com.workflowmanagement.task_track.enums.taskenum.TaskStatus;
 import com.workflowmanagement.task_track.mapper.TaskMapper;
 import com.workflowmanagement.task_track.model.Task;
@@ -118,6 +119,27 @@ public class TaskService implements ITaskService {
             return true;
         }
         return false;
+    }
+
+    public long getCompletedCountByUser(Integer userId) {
+        // Note: Using the TaskStatus Enum instead of String "COMPLETED"
+        return taskRepository.countByAssignedToUser_UserIdAndStatus(userId, TaskStatus.COMPLETED);
+    }
+
+
+    public long getTotalCountByUser(Integer userId) {
+        return taskRepository.countByAssignedToUser_UserId(userId);
+    }
+
+    public long getCompletedCountByDept(String deptName) {
+        // Convert the String from the URL to your Department Enum
+        Department dept = Department.valueOf(deptName.toUpperCase());
+        return taskRepository.countByAssignedToUser_DepartmentAndStatus(dept, TaskStatus.COMPLETED);
+    }
+
+    public long getTotalCountByDept(String deptName) {
+        Department dept = Department.valueOf(deptName.toUpperCase());
+        return taskRepository.countByAssignedToUser_Department(dept);
     }
 
 
