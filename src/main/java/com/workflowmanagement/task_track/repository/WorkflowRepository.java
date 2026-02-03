@@ -12,7 +12,8 @@ import java.util.Optional;
 @Repository
 public interface WorkflowRepository extends JpaRepository<Workflow, Integer> {
 
-    public ResponseGetWorkflowByIDDTO findByWorkflowId(Integer workflowId);
+
+
 
     public Optional<List<Workflow>> findByCreatedBy_Department( Department department);
 }

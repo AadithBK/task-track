@@ -33,12 +33,10 @@ public class Workflow {
     @Enumerated(EnumType.STRING)
     private WorkflowStatus status;
 
-@OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-@JoinColumn(name = "fk_workflow_id")
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "workflow")
     private List<WorkflowStep> workflowSteps = new ArrayList<>();
 
-
-@OneToOne( optional = false)
+@ManyToOne( optional = false)
 @JoinColumn(name="created_by_user_id")
 private User createdBy;
 }
