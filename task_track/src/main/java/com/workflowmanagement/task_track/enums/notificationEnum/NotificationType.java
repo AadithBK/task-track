@@ -7,4 +7,5 @@ public enum NotificationType {
     TASK_APPROVED,
     TASK_REJECTED,
     DEADLINE_ALERT
+
 }

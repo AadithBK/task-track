@@ -19,6 +19,7 @@ public class Notification {
     @Setter
     private  Integer userId;
     @Setter
+    @Enumerated(EnumType.STRING)
     private NotificationType type;
     @Setter
     private String message;
