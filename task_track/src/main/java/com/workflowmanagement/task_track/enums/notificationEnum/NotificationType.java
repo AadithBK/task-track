@@ -1,5 +1,5 @@
 package com.workflowmanagement.task_track.enums.notificationEnum;
-
+//enums
 public enum NotificationType {
     TASK_ASSIGNED,
     TASK_STATUS_UPDATE,
