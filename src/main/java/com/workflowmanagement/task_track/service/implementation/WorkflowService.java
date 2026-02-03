@@ -13,6 +13,7 @@ import com.workflowmanagement.task_track.model.workflow.WorkflowStep;
 import com.workflowmanagement.task_track.model.workflow.template.WorkflowTemplate;
 import com.workflowmanagement.task_track.repository.UserRepository;
 import com.workflowmanagement.task_track.repository.WorkflowRepository;
+import com.workflowmanagement.task_track.repository.WorkflowStepsRepository;
 import com.workflowmanagement.task_track.repository.WorkflowTemplateRepository;
 import com.workflowmanagement.task_track.service.IWorkflowService;
 import jakarta.persistence.EntityNotFoundException;
@@ -30,18 +31,13 @@ public class WorkflowService implements IWorkflowService {
     private final WorkflowTemplateRepository workflowTemplateRepository;
     private final WorkflowTemplateMapper workflowTemplateMapper;
     private final UserRepository userRepository;
+    private final WorkflowStepsRepository workflowStepsRepository;
+
+
     @Override
     public ResponseCreateNewWorkflowDTO createWorkflowFromTemplate(Integer workflowTemplateID) {
         WorkflowTemplate workflowTemplate = workflowTemplateRepository.findById(workflowTemplateID).orElseThrow(() -> new EntityNotFoundException("Workflow Template with ID " + workflowTemplateID + " does not exist"));
-        List<WorkflowStep> createWorkFlowSteps =  workflowTemplate
-                .getWorkflowSteps()
-                .stream()
-                .map(workflowTemplateStep -> WorkflowStep
-                        .builder()
-                        .stepName(workflowTemplateStep.getWorkflowTemplateStepName())
-                        .status(WorkflowStepStatus.PENDING)
-                        .build()
-                ).toList();
+
         var auth  = SecurityContextHolder.getContext().getAuthentication();
         var principal = (UserPrincipal) auth.getPrincipal();
         Integer user = principal.user().getUserId();
@@ -52,13 +48,26 @@ public class WorkflowService implements IWorkflowService {
 
         Workflow createWorkFlowFromTemplate = Workflow
                 .builder()
-                .workflowSteps(createWorkFlowSteps)
+//                .workflowSteps(createWorkFlowSteps)
                 .workflowName(workflowTemplate.getWorkflowTemplateName())
-                .currentStep(createWorkFlowSteps.getFirst().getWorkflowStepId())
+//                .currentStep(createWorkFlowSteps.getFirst().getWorkflowStepId())
                 .status(WorkflowStatus.PENDING)
                 .createdBy(managedUser)
                 .build();
+        List<WorkflowStep> createWorkFlowSteps =  workflowTemplate
+                .getWorkflowSteps()
+                .stream()
+                .map(workflowTemplateStep -> WorkflowStep
+                        .builder()
+                        .stepName(workflowTemplateStep.getWorkflowTemplateStepName())
+                        .step(workflowTemplateStep.getWorkflowTemplateStepPosition())
+                        .status(WorkflowStepStatus.PENDING)
+                        .workflow(createWorkFlowFromTemplate)
+                        .build()
+                ).toList();
 
+        createWorkFlowFromTemplate.setWorkflowSteps(createWorkFlowSteps);
+        createWorkFlowFromTemplate.setCurrentStep(createWorkFlowSteps.getFirst().getWorkflowStepId());
 
         return workflowTemplateMapper.toCustomWorkflowResponse( workflowRepository.save(createWorkFlowFromTemplate));
     }
@@ -71,7 +80,10 @@ public class WorkflowService implements IWorkflowService {
     @Override
     public ResponseGetWorkflowByIDDTO getWorkflowById(Integer workflowId) {
         Workflow workflow = workflowRepository.findById(workflowId).orElseThrow(() ->  new EntityNotFoundException("Workflow with ID " + workflowId + " not found"));
+        List<WorkflowStep> orderedSteps = workflowStepsRepository.findByWorkflow_WorkflowIdOrderByStepAsc(workflowId);
 
+        // 3. Attach the ordered list back to the workflow object (optional, for the return DTO)
+        workflow.setWorkflowSteps(orderedSteps);
         return workflowTemplateMapper.toGetByIdDto(workflow);
     }
 

@@ -39,6 +39,10 @@ public class WorkflowStep {
     @Enumerated(EnumType.STRING)
     private WorkflowStepStatus status;
 
+    private Integer step;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "fk_workflow_id") // The physical column remains here
+    private Workflow workflow;
 
 }
