@@ -21,8 +21,9 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-
-
+import com.workflowmanagement.task_track.enums.notificationEnum.NotificationType;
+import org.springframework.context.ApplicationEventPublisher;
+import com.workflowmanagement.task_track.event.WorkflowEvent;
 import java.util.List;
 import java.util.Optional;
 
@@ -34,6 +35,7 @@ public class TaskService implements ITaskService {
     private final UserRepository userRepository;
     private final UserService userService;
     private final TaskRepository taskRepository;
+    private final ApplicationEventPublisher eventPublisher;
     private final WorkflowStepsRepository workflowStepsRepository;
     public TaskDto createTask(TaskCreateDto task){
 
@@ -57,6 +59,7 @@ public class TaskService implements ITaskService {
             assignedToUser.getAssignedTasks().add(createdTask);
             createdByUser.getCreatedTasks().add(createdTask);
             taskRepository.save(createdTask);
+            eventPublisher.publishEvent(new WorkflowEvent(assignedToUser.getUserId(), NotificationType.TASK_ASSIGNED, "New task assigned: "+ createdTask.getTitle()));
             return taskMapper.toDto(createdTask);
         }
         else {
@@ -89,7 +92,15 @@ public class TaskService implements ITaskService {
 
         Optional<Task> optTask = taskRepository.findById(t.getTaskId());
         if(optTask.isPresent()){
+
+            //  Fetch task
             Task task = optTask.get();
+
+            //  Capture OLD values
+            TaskStatus oldStatus = task.getStatus();
+            Integer oldAssigneeId = task.getAssignedToUser().getUserId();
+
+            //  Update task
             Optional<User> updateUser = userRepository.findById(t.getAssignedToUser());
             task.setTitle(t.getTitle());
             task.setDescription(t.getDescription());
@@ -97,11 +108,39 @@ public class TaskService implements ITaskService {
             task.setPriority(t.getPriority());
             task.setStatus(t.getStatus());
             task.setDueDate(t.getDueDate());
+
+            //  Save
             taskRepository.save(task);
-            return t;
+
+            // Compare & trigger notifications
+
+            // Status changed
+            if (oldStatus != task.getStatus()) {
+                eventPublisher.publishEvent(
+                        new WorkflowEvent(
+                                task.getCreatedByUser().getUserId(),
+                                NotificationType.TASK_STATUS_UPDATE,
+                                "Task status updated to " + task.getStatus() + ": " + task.getTitle()
+                        )
+                );
+            }
+
+            // Assignee changed
+            Integer newAssigneeId = task.getAssignedToUser().getUserId();
+            if (!oldAssigneeId.equals(newAssigneeId)) {
+                eventPublisher.publishEvent(
+                        new WorkflowEvent(
+                                newAssigneeId,
+                                NotificationType.TASK_ASSIGNED,
+                                "Task reassigned to you: " + task.getTitle()
+                        )
+                );
+            }
+
+            return taskMapper.toDto(task);
         }
         else{
-            throw  new EntityNotFoundException("The task was not found");
+            throw new EntityNotFoundException("The task was not found");
         }
     }
 
