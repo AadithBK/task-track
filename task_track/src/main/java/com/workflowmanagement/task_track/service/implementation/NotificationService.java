@@ -1,15 +1,16 @@
-package com.workflowmanagement.task_track.service;
+package com.workflowmanagement.task_track.service.implementation;
 
 
 import com.workflowmanagement.task_track.enums.notificationEnum.NotificationType;
 import com.workflowmanagement.task_track.model.Notification;
 import com.workflowmanagement.task_track.repository.NotificationRepository;
+import com.workflowmanagement.task_track.service.INotificationService;
 import org.springframework.stereotype.Service;
 import java.util.List;
 
 
 @Service
-public class NotificationService {
+public class NotificationService implements INotificationService {
 
     private final NotificationRepository repository;
 

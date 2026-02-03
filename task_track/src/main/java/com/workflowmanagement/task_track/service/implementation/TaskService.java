@@ -23,7 +23,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import com.workflowmanagement.task_track.enums.notificationEnum.NotificationType;
 import org.springframework.context.ApplicationEventPublisher;
-
+import com.workflowmanagement.task_track.event.WorkflowEvent;
 import java.util.List;
 import java.util.Optional;
 
@@ -116,7 +116,7 @@ public class TaskService implements ITaskService {
 
             // Status changed
             if (oldStatus != task.getStatus()) {
-                publisher.publishEvent(
+                eventPublisher.publishEvent(
                         new WorkflowEvent(
                                 task.getCreatedByUser().getUserId(),
                                 NotificationType.TASK_STATUS_UPDATE,
@@ -128,7 +128,7 @@ public class TaskService implements ITaskService {
             // Assignee changed
             Integer newAssigneeId = task.getAssignedToUser().getUserId();
             if (!oldAssigneeId.equals(newAssigneeId)) {
-                publisher.publishEvent(
+                eventPublisher.publishEvent(
                         new WorkflowEvent(
                                 newAssigneeId,
                                 NotificationType.TASK_ASSIGNED,

@@ -58,7 +58,7 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/users/signup","/api/users/login","/api/task/count/**" ,"/api/users/getAllUsers" ).permitAll()
+                        .requestMatchers("/api/users/signup","/api/users/login","/api/task/count/**" ,"/api/users/getAllUsers","/api/task/create","/api/workflow/template","/api/workflow" ).permitAll()
                         .requestMatchers("/error").permitAll()
                         .anyRequest().authenticated()
                 )

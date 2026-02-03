@@ -1,8 +1,7 @@
 package com.workflowmanagement.task_track.controller;
 
-import com.workflowmanagement.task_track.enums.notificationEnum.NotificationType;
 import com.workflowmanagement.task_track.model.Notification;
-import com.workflowmanagement.task_track.service.NotificationService;
+import com.workflowmanagement.task_track.service.implementation.NotificationService;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
@@ -17,13 +16,13 @@ public class NotificationController {
         this.service = service;
     }
 
-    @PostMapping
-    public Notification createNotification(
-            @RequestParam Integer userId,
-            @RequestParam NotificationType type,
-            @RequestParam String message) {
-        return service.createNotification(userId, type, message);
-    }
+    //@PostMapping
+//    public Notification createNotification(
+//            @RequestParam Integer userId,
+//            @RequestParam NotificationType type,
+//            @RequestParam String message) {
+//        return service.createNotification(userId, type, message);
+//    }
 
     @GetMapping("/{userId}")
     public List<Notification> getUserNotifications(@PathVariable Long userId) {
