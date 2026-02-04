@@ -93,6 +93,6 @@ public class UserController  {
                                 "User Activated Successfully",null,CustomStatus.OK,updatedUser),HttpStatus.OK))
                 .orElse(new ResponseEntity<>(new CustomJSONResponse<>("User not found",null,CustomStatus.ERR,null),HttpStatus.NOT_FOUND));
 
-
+//jnknkin
     }
 }
