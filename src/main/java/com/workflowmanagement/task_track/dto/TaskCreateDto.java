@@ -23,5 +23,6 @@ public class TaskCreateDto {
     private TaskStatus status;
     private Instant dueDate;
 
+    private Integer workflowStepId;
 
 }

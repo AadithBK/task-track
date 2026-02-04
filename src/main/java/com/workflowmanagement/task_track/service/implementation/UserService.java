@@ -10,7 +10,9 @@ import com.workflowmanagement.task_track.enums.Status;
 import com.workflowmanagement.task_track.model.User;
 import com.workflowmanagement.task_track.repository.UserRepository;
 import com.workflowmanagement.task_track.service.IUserService;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -21,8 +23,10 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class UserService implements IUserService {
 
+    @Autowired
     private final  UserRepository userRepository;
 
+    @Autowired
     private final JwtUtil jwtUtil;
 
 
@@ -65,7 +69,7 @@ public class UserService implements IUserService {
 
 
         String roleName=(user.getRole()!=null?user.getRole().name():"NONE");
-        return jwtUtil.generateToken(user.getEmail(), roleName);
+        return jwtUtil.generateToken(user.getEmail(), user.getDepartment(), roleName);
     }
 
     public List<UserResponseDto> getAllUsers() {
@@ -75,7 +79,9 @@ public class UserService implements IUserService {
     }
 
     public Optional<UserResponseDto> getUserById(Integer id) {
-        return userRepository.findById(id).map(this::mapToResponseDto);
+        return Optional.ofNullable(userRepository.findById(id)
+                .map(this::mapToResponseDto)
+                .orElseThrow(() -> new EntityNotFoundException("User Not Found")));
     }
     public Optional<User> getUserObjById(Integer id) {
         return userRepository.findById(id);

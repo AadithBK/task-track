@@ -4,11 +4,13 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.workflowmanagement.task_track.enums.Department;
 import com.workflowmanagement.task_track.enums.Role;
 import com.workflowmanagement.task_track.enums.Status;
+import com.workflowmanagement.task_track.model.workflow.Workflow;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.jdbc.Work;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,11 +31,8 @@ public class User {
     @Pattern(regexp = "^[a-zA-Z]+$", message = "Username can only contain letters, numbers, and underscores")
     private String userName;
 
-    //    @Email(message = "Please provide a valid email address")
-    @Pattern(
-            regexp = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$",
-            message = "Enter the valid EmailId"
-    )
+    @Email(message = "Enter the valid EmailId", regexp = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$")
+
     @NotBlank(message = "Email is required")
     @Column(nullable = false, unique = true)
     private String email;
@@ -64,4 +63,7 @@ public class User {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Status status = Status.INACTIVE; // Default set here
+
+
+
 }

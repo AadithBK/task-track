@@ -1,21 +1,29 @@
 package com.workflowmanagement.task_track.service.implementation;
 
+import com.workflowmanagement.task_track.dto.ResponseTaskCreateDto;
 import com.workflowmanagement.task_track.dto.TaskCreateDto;
 import com.workflowmanagement.task_track.dto.TaskDto;
+import com.workflowmanagement.task_track.enums.Department;
 import com.workflowmanagement.task_track.enums.taskenum.TaskStatus;
 import com.workflowmanagement.task_track.mapper.TaskMapper;
 import com.workflowmanagement.task_track.model.Task;
 import com.workflowmanagement.task_track.model.User;
 import com.workflowmanagement.task_track.model.UserPrincipal;
+import com.workflowmanagement.task_track.model.workflow.Workflow;
+import com.workflowmanagement.task_track.model.workflow.WorkflowStep;
+import com.workflowmanagement.task_track.model.workflow.template.WorkflowTemplate;
 import com.workflowmanagement.task_track.repository.TaskRepository;
 import com.workflowmanagement.task_track.repository.UserRepository;
+import com.workflowmanagement.task_track.repository.WorkflowRepository;
+import com.workflowmanagement.task_track.repository.WorkflowStepsRepository;
 import com.workflowmanagement.task_track.service.ITaskService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-
-
+import com.workflowmanagement.task_track.enums.notificationEnum.NotificationType;
+import org.springframework.context.ApplicationEventPublisher;
+import com.workflowmanagement.task_track.event.WorkflowEvent;
 import java.util.List;
 import java.util.Optional;
 
@@ -27,11 +35,13 @@ public class TaskService implements ITaskService {
     private final UserRepository userRepository;
     private final UserService userService;
     private final TaskRepository taskRepository;
-
-    public TaskCreateDto createTask(TaskCreateDto task){
+    private final ApplicationEventPublisher eventPublisher;
+    private final WorkflowStepsRepository workflowStepsRepository;
+    public TaskDto createTask(TaskCreateDto task){
 
         Optional<User> optAssignedUser = userService.getUserObjById(task.getAssignedToUserId());
         Optional<User> optCreatedUser = userService.getUserObjById(task.getCreatedByUserId());
+        WorkflowStep workflowStep = workflowStepsRepository.findById(task.getWorkflowStepId()).orElseThrow(() -> new EntityNotFoundException("Workflow Step with ID " + task.getWorkflowStepId() + " does not exist"));
 
         if (optAssignedUser.isPresent() && optCreatedUser.isPresent() ){
             User assignedToUser = optAssignedUser.get();
@@ -44,11 +54,13 @@ public class TaskService implements ITaskService {
                     .status(task.getStatus())
                     .priority(task.getPriority())
                     .dueDate(task.getDueDate())
+                    .workflowStep(workflowStep)
                     .build();
             assignedToUser.getAssignedTasks().add(createdTask);
             createdByUser.getCreatedTasks().add(createdTask);
             taskRepository.save(createdTask);
-            return task;
+            eventPublisher.publishEvent(new WorkflowEvent(assignedToUser.getUserId(), NotificationType.TASK_ASSIGNED, "New task assigned: "+ createdTask.getTitle()));
+            return taskMapper.toDto(createdTask);
         }
         else {
             throw new EntityNotFoundException("The given user id does not match with the records");
@@ -80,7 +92,15 @@ public class TaskService implements ITaskService {
 
         Optional<Task> optTask = taskRepository.findById(t.getTaskId());
         if(optTask.isPresent()){
+
+            //  Fetch task
             Task task = optTask.get();
+
+            //  Capture OLD values
+            TaskStatus oldStatus = task.getStatus();
+            Integer oldAssigneeId = task.getAssignedToUser().getUserId();
+
+            //  Update task
             Optional<User> updateUser = userRepository.findById(t.getAssignedToUser());
             task.setTitle(t.getTitle());
             task.setDescription(t.getDescription());
@@ -88,11 +108,39 @@ public class TaskService implements ITaskService {
             task.setPriority(t.getPriority());
             task.setStatus(t.getStatus());
             task.setDueDate(t.getDueDate());
+
+            //  Save
             taskRepository.save(task);
-            return t;
+
+            // Compare & trigger notifications
+
+            // Status changed
+            if (oldStatus != task.getStatus()) {
+                eventPublisher.publishEvent(
+                        new WorkflowEvent(
+                                task.getCreatedByUser().getUserId(),
+                                NotificationType.TASK_STATUS_UPDATE,
+                                "Task status updated to " + task.getStatus() + ": " + task.getTitle()
+                        )
+                );
+            }
+
+            // Assignee changed
+            Integer newAssigneeId = task.getAssignedToUser().getUserId();
+            if (!oldAssigneeId.equals(newAssigneeId)) {
+                eventPublisher.publishEvent(
+                        new WorkflowEvent(
+                                newAssigneeId,
+                                NotificationType.TASK_ASSIGNED,
+                                "Task reassigned to you: " + task.getTitle()
+                        )
+                );
+            }
+
+            return taskMapper.toDto(task);
         }
         else{
-            throw  new EntityNotFoundException("The task was not found");
+            throw new EntityNotFoundException("The task was not found");
         }
     }
 
@@ -110,6 +158,27 @@ public class TaskService implements ITaskService {
             return true;
         }
         return false;
+    }
+
+    public long getCompletedCountByUser(Integer userId) {
+        // Note: Using the TaskStatus Enum instead of String "COMPLETED"
+        return taskRepository.countByAssignedToUser_UserIdAndStatus(userId, TaskStatus.COMPLETED);
+    }
+
+
+    public long getTotalCountByUser(Integer userId) {
+        return taskRepository.countByAssignedToUser_UserId(userId);
+    }
+
+    public long getCompletedCountByDept(String deptName) {
+        // Convert the String from the URL to your Department Enum
+        Department dept = Department.valueOf(deptName.toUpperCase());
+        return taskRepository.countByAssignedToUser_DepartmentAndStatus(dept, TaskStatus.COMPLETED);
+    }
+
+    public long getTotalCountByDept(String deptName) {
+        Department dept = Department.valueOf(deptName.toUpperCase());
+        return taskRepository.countByAssignedToUser_Department(dept);
     }
 
 

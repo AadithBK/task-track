@@ -2,12 +2,14 @@ package com.workflowmanagement.task_track.dto;
 
 import com.workflowmanagement.task_track.enums.taskenum.TaskPriority;
 import com.workflowmanagement.task_track.enums.taskenum.TaskStatus;
+import com.workflowmanagement.task_track.model.SubTask;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 
 import java.time.Instant;
+import java.util.List;
 
 @Data
 public class TaskDto {
@@ -33,5 +35,7 @@ public class TaskDto {
 
     private Instant dueDate;
 
+//    private List<SubTask> subTasks;
+//
 
 }
