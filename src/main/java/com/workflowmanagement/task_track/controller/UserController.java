@@ -6,7 +6,7 @@ import com.workflowmanagement.task_track.dto.SignupRequestDto;
 import com.workflowmanagement.task_track.dto.UserResponseDto;
 import com.workflowmanagement.task_track.model.User;
 import com.workflowmanagement.task_track.service.implementation.UserService;
-import com.workflowmanagement.task_track.util.CustomStatus;
+import com.workflowmanagement.task_track.enums.CustomStatus;
 
 import com.workflowmanagement.task_track.util.CustomJSONResponse;
 import jakarta.validation.Valid;
