@@ -42,6 +42,13 @@ public class GlobalExceptionHandler {
     {
         return new ResponseEntity<>(CustomJSONResponse.err(ex.getMessage()), HttpStatus.UNAUTHORIZED);
     }
+
+    @ExceptionHandler(AwaitingApprovalException.class)
+    public ResponseEntity<CustomJSONResponse> handlleApproval(AwaitingApprovalException ex)
+    {
+        return new ResponseEntity<>(CustomJSONResponse.err(ex.getMessage()), HttpStatus.UNAUTHORIZED);
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public  ResponseEntity<CustomJSONResponse>  handleValidationExceptions(MethodArgumentNotValidException ex) {
@@ -49,7 +56,7 @@ public class GlobalExceptionHandler {
                 .getFieldError()
                 .getDefaultMessage();
 
-        return new ResponseEntity<>(CustomJSONResponse.err(ex.getMessage()), HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(CustomJSONResponse.err(errorMessage), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(SQLIntegrityConstraintViolationException.class)

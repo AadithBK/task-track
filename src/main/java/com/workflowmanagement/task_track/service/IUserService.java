@@ -1,9 +1,9 @@
 
 package com.workflowmanagement.task_track.service;
 
-import com.workflowmanagement.task_track.dto.AdminActivationDto;
-import com.workflowmanagement.task_track.dto.SignupRequestDto;
-import com.workflowmanagement.task_track.dto.UserResponseDto;
+import com.workflowmanagement.task_track.dto.user.UserActivationDto;
+import com.workflowmanagement.task_track.dto.user.SignupRequestDto;
+import com.workflowmanagement.task_track.dto.user.UserResponseDto;
 import com.workflowmanagement.task_track.model.User;
 
 import java.util.List;
@@ -78,6 +78,6 @@ public interface IUserService {
      * @param activationDto role & status payload
      * @return optional UserResponseDto
      */
-    Optional<UserResponseDto> activateUser(Integer id, AdminActivationDto activationDto);
+    Optional<UserResponseDto> activateUser(Integer id, UserActivationDto activationDto);
 }
 
