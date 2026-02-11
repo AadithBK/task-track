@@ -1,9 +1,9 @@
 package com.workflowmanagement.task_track.controller;
 
-import com.workflowmanagement.task_track.dto.AdminActivationDto;
-import com.workflowmanagement.task_track.dto.LoginRequest;
-import com.workflowmanagement.task_track.dto.SignupRequestDto;
-import com.workflowmanagement.task_track.dto.UserResponseDto;
+import com.workflowmanagement.task_track.dto.user.UserActivationDto;
+import com.workflowmanagement.task_track.dto.user.LoginRequestDto;
+import com.workflowmanagement.task_track.dto.user.SignupRequestDto;
+import com.workflowmanagement.task_track.dto.user.UserResponseDto;
 import com.workflowmanagement.task_track.model.User;
 import com.workflowmanagement.task_track.service.implementation.UserService;
 import com.workflowmanagement.task_track.enums.CustomStatus;
@@ -34,9 +34,9 @@ public class UserController  {
     }
 
     @PostMapping(value = "/login", produces = {"application/json"})
-    public ResponseEntity<CustomJSONResponse> login(@Valid @RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<CustomJSONResponse> login(@Valid @RequestBody LoginRequestDto loginRequestDto) {
         // Now Spring only checks for email and password!
-        String token = userService.loginUser(loginRequest.getEmail(), loginRequest.getPassword());
+        String token = userService.loginUser(loginRequestDto.getEmail(), loginRequestDto.getPassword());
         return new ResponseEntity( new CustomJSONResponse<>("", null,CustomStatus.OK, token ),HttpStatus.OK);
     }
 
@@ -85,7 +85,7 @@ public class UserController  {
 
     @PutMapping("/activate/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public  ResponseEntity<CustomJSONResponse<UserResponseDto>> activeUser(@PathVariable Integer id, @RequestBody AdminActivationDto activationDto)
+    public  ResponseEntity<CustomJSONResponse<UserResponseDto>> activeUser(@PathVariable Integer id, @RequestBody UserActivationDto activationDto)
     {
         return userService.activateUser(id,activationDto)
                 .map(updatedUser->new ResponseEntity<>(

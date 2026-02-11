@@ -4,6 +4,9 @@ package com.workflowmanagement.task_track.service;
 import com.workflowmanagement.task_track.dto.ResponseTaskCreateDto;
 import com.workflowmanagement.task_track.dto.TaskCreateDto;
 import com.workflowmanagement.task_track.dto.TaskDto;
+import com.workflowmanagement.task_track.enums.taskenum.TaskStatus;
+import jakarta.transaction.Transactional;
+import org.springframework.data.jpa.repository.Modifying;
 
 import java.util.List;
 
@@ -55,5 +58,10 @@ public interface ITaskService {
      * @return true if status changed and saved, false if task not found
      */
     boolean deleteTaskById(Integer id);
+
+
+    @Transactional
+    @Modifying
+    TaskDto updateTaskStatus(Integer taskId, TaskStatus taskStatus);
 }
 

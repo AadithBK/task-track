@@ -27,6 +27,8 @@ public class Task {
 //    @JoinColumn(name="task_id_fk", referencedColumnName = "taskId", nullable = false, foreignKey =  @ForeignKey(name = "fk_sub_task_task_id"))
 //@OneToMany(mappedBy = "taskId")
     private Integer taskId;
+
+
     @OneToMany(mappedBy = "taskId", fetch = FetchType.EAGER)
    @JsonBackReference
     private List<SubTask> subTasks;

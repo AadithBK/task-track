@@ -32,7 +32,6 @@ public class User {
     private String userName;
 
     @Email(message = "Enter the valid EmailId", regexp = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$")
-
     @NotBlank(message = "Email is required")
     @Column(nullable = false, unique = true)
     private String email;

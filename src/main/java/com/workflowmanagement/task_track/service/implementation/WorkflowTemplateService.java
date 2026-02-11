@@ -24,8 +24,7 @@ import java.util.Objects;
 
 @Service
 public class WorkflowTemplateService implements IWorkFlowTemplateService {
-    @PersistenceContext // Inject the JPA EntityManager
-    private EntityManager entityManager;
+
     @Autowired
     private WorkflowTemplateRepository workflowTemplateRepository;
 
@@ -39,14 +38,9 @@ public class WorkflowTemplateService implements IWorkFlowTemplateService {
     public ResponseWorkflowDto createTemplate(CreateTemplateDto createTemplateDto) {
 
 //        Get mapper for converting DTO to entities
-
-
     WorkflowTemplate workflowTemplate1 = mapper.toEntity(createTemplateDto);
     workflowTemplate1.setWorkflowTemplateSteps(createTemplateDto.getWorkflowSteps().size());
     workflowTemplate1.setStatus(true);
-//   workflowTemplate1.setWorkflowSteps(workflowStepDtoToEntity);
-
-
     return  mapper.toCustomResponseDto(workflowTemplateRepository.save(workflowTemplate1));
     }
 
