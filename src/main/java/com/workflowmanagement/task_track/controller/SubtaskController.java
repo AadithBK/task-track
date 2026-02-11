@@ -38,7 +38,7 @@ public class SubtaskController {
     @GetMapping("/tasks/{taskId}")
     public ResponseEntity<CustomJSONResponse<List<SubTask>>> getAllSubTasksForTask(@PathVariable Integer taskId) {
 
-        return new ResponseEntity<>(CustomJSONResponse.ok(null, subTasksService.getAllSubTasks(taskId)), HttpStatus.CREATED);
+        return new ResponseEntity<>(CustomJSONResponse.ok(null, subTasksService.getSubTaskById(taskId)), HttpStatus.CREATED);
     }
     @PreAuthorize("hasRole('MANAGER')")
     @PutMapping("/{taskId}/{subTaskId}")

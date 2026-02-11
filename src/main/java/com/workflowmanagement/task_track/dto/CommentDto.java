@@ -7,7 +7,7 @@ import lombok.Setter;
 
 @Setter
 @Getter
-public class CommentDTO {
+public class CommentDto {
 
     // Getters and setters
     @NotNull

@@ -4,10 +4,11 @@ import com.workflowmanagement.task_track.enums.Department;
 import org.springframework.beans.factory.annotation.Value;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.stereotype.Component;
-import java.security.Key;
+
+import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -20,28 +21,31 @@ public class JwtUtil {
 
     private static final long EXPIRATION_TIME = 3600000; // 1 hour
 
-    private Key getSigningKey() {
-        return Keys.hmacShaKeyFor(secret.getBytes());
+    private SecretKey getSigningKey() {
+
+        byte[] keyBytes=secret.getBytes(StandardCharsets.UTF_8);
+
+        return Keys.hmacShaKeyFor(keyBytes);
     }
 
-    public String generateToken(String email, Department department, String role) {
+    public String generateToken(String email,String role) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("role", role);
-        claims.put("department", department);
+
         return Jwts.builder()
-                .setClaims(claims)
-                .setSubject(email)
-                .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
-                .signWith(getSigningKey(), SignatureAlgorithm.HS256)//signature
+                .claims(claims)
+                .subject(email)
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
+                .signWith(getSigningKey())//signature
                 .compact();
     }
 
     public Claims getClaims(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(getSigningKey())
+        return Jwts.parser()
+                .verifyWith(getSigningKey())
                 .build()
-                .parseClaimsJws(token)
-                .getBody();
+                .parseSignedClaims(token)
+                .getPayload();
     }
 }

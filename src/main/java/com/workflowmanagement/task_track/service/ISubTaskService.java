@@ -15,7 +15,7 @@ public interface ISubTaskService {
     public SubTask save(SubTaskCreateRequestDTO subTaskCreateRequestDTOObject);
 
     //GET all tasks for a task
-    public List<SubTask> getAllSubTasks( Integer taskId);
+    public List<SubTask> getSubTaskById( Integer taskId);
 //
     //Delete a subtask
     public void deleteSubTask( Integer taskId, Integer subTaskId);

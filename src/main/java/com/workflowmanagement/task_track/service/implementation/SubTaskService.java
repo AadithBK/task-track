@@ -50,9 +50,10 @@ private UserRepository userRepository;
 
     }
 
+
     @Override
-    public List<SubTask> getAllSubTasks(Integer taskId) {
-        Task findParentTask = taskRepository.findById(taskId).orElseThrow(() -> new EntityNotFoundException("Parent Task does not exists"));
+    public List<SubTask> getSubTaskById(Integer subtaskId) {
+        Task findParentTask = taskRepository.findById(subtaskId).orElseThrow(() -> new EntityNotFoundException("Parent Task does not exists"));
 
         return subTaskRepository.findAllByTaskId(findParentTask);
     }

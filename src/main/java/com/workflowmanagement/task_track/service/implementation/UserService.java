@@ -1,12 +1,14 @@
 package com.workflowmanagement.task_track.service.implementation;
 
+import com.workflowmanagement.task_track.exceptions.AwaitingApprovalException;
 import com.workflowmanagement.task_track.exceptions.InvalidCredentialsException;
 import com.workflowmanagement.task_track.exceptions.UserAlreadyExistsException;
 import com.workflowmanagement.task_track.config.JwtUtil;
-import com.workflowmanagement.task_track.dto.AdminActivationDto;
-import com.workflowmanagement.task_track.dto.SignupRequestDto;
-import com.workflowmanagement.task_track.dto.UserResponseDto;
+import com.workflowmanagement.task_track.dto.user.UserActivationDto;
+import com.workflowmanagement.task_track.dto.user.SignupRequestDto;
+import com.workflowmanagement.task_track.dto.user.UserResponseDto;
 import com.workflowmanagement.task_track.enums.Status;
+import com.workflowmanagement.task_track.mapper.UserMapper;
 import com.workflowmanagement.task_track.model.User;
 import com.workflowmanagement.task_track.repository.UserRepository;
 import com.workflowmanagement.task_track.service.IUserService;
@@ -30,19 +32,22 @@ public class UserService implements IUserService {
     @Autowired
     private final JwtUtil jwtUtil;
 
+    @Autowired
+    private UserMapper userMapper;
+
 
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
 
-    private UserResponseDto mapToResponseDto(User user) {
-        return new UserResponseDto(
-                user.getUserId(),
-                user.getUserName(),
-                user.getEmail(),
-                user.getRole(),
-                user.getDepartment(),
-                user.getStatus()
-        );
-    }
+//    private UserResponseDto mapToResponseDto(User user) {
+//        return new UserResponseDto(
+//                user.getUserId(),
+//                user.getUserName(),
+//                user.getEmail(),
+//                user.getRole(),
+//                user.getDepartment(),
+//                user.getStatus()
+//        );
+//    }
 
     public UserResponseDto registerUser(SignupRequestDto userDto) {
         if (userRepository.findByEmail(userDto.getEmail()).isPresent()) {
@@ -55,33 +60,33 @@ public class UserService implements IUserService {
         user.setPassword(encoder.encode(userDto.getPassword()));
 
         User savedUser= userRepository.save(user);
-        return mapToResponseDto(savedUser);
+        return userMapper.userToUserResponseDto(savedUser);
     }
 
     public String loginUser(String email, String password) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new InvalidCredentialsException("User does not exist"));
-
         if(user.getStatus()!= Status.ACTIVE)
-            throw new RuntimeException("Account is INACTIVE. Awaiting Admin approval.");
+            throw new AwaitingApprovalException("Account is INACTIVE. Awaiting Admin approval.");
         if (!encoder.matches(password, user.getPassword())) {
             throw new InvalidCredentialsException("Invalid credentials: Password does not match.");
         }
 
 
         String roleName=(user.getRole()!=null?user.getRole().name():"NONE");
-        return jwtUtil.generateToken(user.getEmail(), user.getDepartment(), roleName);
+        return jwtUtil.generateToken(user.getEmail(), roleName);
     }
 
     public List<UserResponseDto> getAllUsers() {
-        return userRepository.findAll().
-                stream().map(this::mapToResponseDto)
-                .toList();
+        List<User> users= userRepository.findAll();
+        return userMapper.toDtoList(users);
+
+
     }
 
     public Optional<UserResponseDto> getUserById(Integer id) {
         return Optional.ofNullable(userRepository.findById(id)
-                .map(this::mapToResponseDto)
+                .map(userMapper::userToUserResponseDto)
                 .orElseThrow(() -> new EntityNotFoundException("User Not Found")));
     }
     public Optional<User> getUserObjById(Integer id) {
@@ -102,7 +107,7 @@ public class UserService implements IUserService {
                             existingUser.setPassword(encoder.encode(user.getPassword()) );
                     }
                     User updatedUser = userRepository.save(existingUser);
-                    return mapToResponseDto(updatedUser);
+                    return userMapper.userToUserResponseDto(updatedUser);
                 }
         );
     }
@@ -117,13 +122,13 @@ public class UserService implements IUserService {
     }
 
     @Transactional
-    public Optional<UserResponseDto> activateUser(Integer id, AdminActivationDto activationDto) {
+    public Optional<UserResponseDto> activateUser(Integer id, UserActivationDto activationDto) {
         return userRepository.findById(id).map(user -> {
             user.setRole(activationDto.getRole());
             user.setStatus(activationDto.getStatus());
             User updatedUser=userRepository.save(user);
 
-            return mapToResponseDto(updatedUser);
+            return userMapper.userToUserResponseDto(updatedUser);
 
         });
     }

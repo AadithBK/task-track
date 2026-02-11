@@ -1,4 +1,4 @@
-package com.workflowmanagement.task_track.dto;
+package com.workflowmanagement.task_track.dto.user;
 
 import com.workflowmanagement.task_track.enums.Department;
 import com.workflowmanagement.task_track.enums.Role;
