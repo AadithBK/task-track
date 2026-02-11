@@ -153,4 +153,14 @@ private UserRepository userRepository;
         }
 
     }
+
+    @Override
+    @Transactional
+    public void updateSubTaskStatus(Integer taskId, Integer subTaskId, SubTaskStatusEnum status) {
+        SubTask subTask = subTaskRepository.findBySubTaskIdAndTaskId_TaskId(subTaskId, taskId).orElseThrow(() -> new EntityNotFoundException("Sub Task not found"));
+     subTask.setStatus(status);
+
+    }
+
+
 }

@@ -16,4 +16,6 @@ public interface WorkflowRepository extends JpaRepository<Workflow, Integer> {
 
 
     public Optional<List<Workflow>> findByCreatedBy_Department( Department department);
+
+   public Optional<Workflow> findByWorkflowIdAndCreatedBy_UserId(Integer workflowId,  Integer user);
 }

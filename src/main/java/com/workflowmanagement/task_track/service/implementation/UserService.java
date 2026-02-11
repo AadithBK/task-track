@@ -11,6 +11,7 @@ import com.workflowmanagement.task_track.model.User;
 import com.workflowmanagement.task_track.repository.UserRepository;
 import com.workflowmanagement.task_track.service.IUserService;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -115,6 +116,7 @@ public class UserService implements IUserService {
         return false;
     }
 
+    @Transactional
     public Optional<UserResponseDto> activateUser(Integer id, AdminActivationDto activationDto) {
         return userRepository.findById(id).map(user -> {
             user.setRole(activationDto.getRole());

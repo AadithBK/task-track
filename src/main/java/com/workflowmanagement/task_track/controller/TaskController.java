@@ -2,6 +2,8 @@ package com.workflowmanagement.task_track.controller;
 
 import com.workflowmanagement.task_track.dto.TaskCreateDto;
 import com.workflowmanagement.task_track.dto.TaskDto;
+import com.workflowmanagement.task_track.dto.TaskStatusPatchReqDTO;
+import com.workflowmanagement.task_track.enums.taskenum.TaskStatus;
 import com.workflowmanagement.task_track.model.Task;
 import com.workflowmanagement.task_track.service.implementation.TaskService;
 import com.workflowmanagement.task_track.util.CustomJSONResponse;
@@ -61,6 +63,12 @@ public class TaskController {
         return new ResponseEntity<>(CustomJSONResponse.ok(null, taskDto1), HttpStatus.OK);
     }
 
+    @PatchMapping("status/{id}")
+    @PreAuthorize("hasRole('EMPLOYEE')")
+    public ResponseEntity<CustomJSONResponse<TaskDto>> updateTaskStatus(@Valid @PathVariable Integer id, @RequestBody TaskStatusPatchReqDTO taskStatus) {
+        TaskDto taskDto1 = taskService.updateTaskStatus(id, taskStatus.status());
+        return new ResponseEntity<>(CustomJSONResponse.ok(null, taskDto1), HttpStatus.ACCEPTED);
+    }
     @DeleteMapping("delete/{id}")
     @PreAuthorize("hasRole('MANAGER')")
     public ResponseEntity<CustomJSONResponse<Void>> deleteUserById(@PathVariable Integer id) {

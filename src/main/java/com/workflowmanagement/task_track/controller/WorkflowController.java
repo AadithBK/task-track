@@ -4,8 +4,10 @@ package com.workflowmanagement.task_track.controller;
 import com.workflowmanagement.task_track.dto.ResponseTaskCreateDto;
 import com.workflowmanagement.task_track.dto.workflow.ResponseCreateNewWorkflowDTO;
 import com.workflowmanagement.task_track.dto.workflow.ResponseGetWorkflowByIDDTO;
+import com.workflowmanagement.task_track.dto.workflow.WorkflowStepUpdateStatusReqDTO;
 import com.workflowmanagement.task_track.dto.workflow.template.ResponseWorkflowDto;
 import com.workflowmanagement.task_track.enums.Department;
+import com.workflowmanagement.task_track.enums.workspace.WorkflowStepStatus;
 import com.workflowmanagement.task_track.model.workflow.Workflow;
 import com.workflowmanagement.task_track.service.implementation.WorkflowService;
 import com.workflowmanagement.task_track.util.CustomJSONResponse;
@@ -37,7 +39,7 @@ public class WorkflowController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public CustomJSONResponse<ResponseCreateNewWorkflowDTO> createWorkFlowFromTemplate(@RequestBody CreateWorkflowReq reqBody){
-        return  CustomJSONResponse.ok("Craeted new workflow template",workflowService.createWorkflowFromTemplate(reqBody.workflowTemplateId));
+        return  CustomJSONResponse.ok("Created new workflow template",workflowService.createWorkflowFromTemplate(reqBody.workflowTemplateId));
     }
 
 @DeleteMapping("/{workflowId}")
@@ -55,4 +57,22 @@ public class WorkflowController {
     public CustomJSONResponse<List<Workflow>> getWorkflowByDepartment(@Valid @PathVariable Department department) {
     return  CustomJSONResponse.ok(null,workflowService.getWorkflowByDepartment(department));
 }
+
+//@PutMapping("/status/{workflowId}")
+//    public CustomJSONResponse<?> updateStatusOfWorkfloe(@Valid @PathVariable Integer workflowId) {
+//
+//        return CustomJSONResponse.ok("", null);
+//}
+
+
+    @DeleteMapping("/{workflowId}/step/{workflowStepId}")
+   @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteWorkflowStep(@PathVariable Integer workflowId, @PathVariable Integer workflowStepId) {
+        workflowService.deleteWorkflowStep(workflowId, workflowStepId);
+    }
+
+    @PatchMapping("/{workflowId}/step/{workflowStepId}/update")
+    public  void updateWorkflowStep(@PathVariable Integer workflowId, @PathVariable Integer workflowStepId,@Valid @RequestBody WorkflowStepUpdateStatusReqDTO workflowStepUpdateStatusReqDTO) {
+        workflowService.updateWorkflowStepStatus( workflowStepId, workflowStepUpdateStatusReqDTO);
+    }
 }

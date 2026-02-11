@@ -52,7 +52,7 @@ public class WorkflowTemplateController {
     }
 
     @GetMapping("/all")
-    public CustomJSONResponse<List<ResponseWorkflowDto>> getAllWorkflows() {
+    public CustomJSONResponse<List<ResponseWorkflowDto>> getAllWorkflowTemplates() {
         return CustomJSONResponse.ok(null,workflowTemplateService.getAllWorkFlowTemplates());
     }
 
