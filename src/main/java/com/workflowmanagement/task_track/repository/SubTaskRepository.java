@@ -6,6 +6,7 @@ import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -22,6 +23,6 @@ public interface SubTaskRepository extends JpaRepository<SubTask, Integer> {
     @Transactional
     void deleteAllByTaskId(Task findTask);
 
-//    @Query("select s from SubTask s join s.taskId t")
-//    List<SubTask> findAllTaskWithSubTask(Integer taskId);
+
+     Optional<SubTask> findBySubTaskIdAndTaskId_TaskId(Integer subTaskId, Integer taskId);
 }

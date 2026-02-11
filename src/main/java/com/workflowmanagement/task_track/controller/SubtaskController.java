@@ -32,37 +32,38 @@ public class SubtaskController {
     public ResponseEntity<CustomJSONResponse<SubTask>> createSubTask(@RequestBody SubTaskCreateRequestDTO subTask) {
             SubTask createdSubTask = subTasksService.save(subTask);
             System.out.println(createdSubTask);
-            return new ResponseEntity<CustomJSONResponse<SubTask>>(CustomJSONResponse.ok("Sub Task Created", createdSubTask), HttpStatus.CREATED);
+            return new ResponseEntity<>(CustomJSONResponse.ok("Sub Task Created", createdSubTask), HttpStatus.CREATED);
     }
 
     @GetMapping("/tasks/{taskId}")
     public ResponseEntity<CustomJSONResponse<List<SubTask>>> getAllSubTasksForTask(@PathVariable Integer taskId) {
 
-        return new ResponseEntity<CustomJSONResponse<List<SubTask>>>(CustomJSONResponse.ok(null, subTasksService.getAllSubTasks(taskId)), HttpStatus.CREATED);
+        return new ResponseEntity<>(CustomJSONResponse.ok(null, subTasksService.getAllSubTasks(taskId)), HttpStatus.CREATED);
     }
     @PreAuthorize("hasRole('MANAGER')")
     @PutMapping("/{taskId}/{subTaskId}")
     public ResponseEntity<CustomJSONResponse<SubTask>> getAllSubTasksForTask(@RequestBody SubTaskUpdateReqDTO subTaskUpdateReqDTO, @PathVariable Integer taskId, @PathVariable Integer subTaskId) {
 
-        return new ResponseEntity<CustomJSONResponse<SubTask>>(CustomJSONResponse.ok("Updated sub task", subTasksService.updateSubTask(subTaskUpdateReqDTO, taskId, subTaskId)), HttpStatus.CREATED);
+        return new ResponseEntity<>(CustomJSONResponse.ok("Updated sub task", subTasksService.updateSubTask(subTaskUpdateReqDTO, taskId, subTaskId)), HttpStatus.CREATED);
     }
     @PreAuthorize("hasRole('MANAGER')")
     @DeleteMapping("/{taskId}/{subTaskId}")
     public  ResponseEntity deleteSubTask(@PathVariable Integer taskId, @PathVariable Integer subTaskId) {
         subTasksService.deleteSubTask(taskId, subTaskId);
-        return  new ResponseEntity(HttpStatus.NO_CONTENT);
+        return  new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
+
     @PreAuthorize("hasRole('EMPLOYEE')")
     @PatchMapping("/status/{taskId}/{subTaskId}")
-    public ResponseEntity updateSubTaskStatus( @PathVariable Integer taskId, @PathVariable Integer subTaskId, @RequestBody SubTaskPatchReqDTO subTaskPatchReqDTO) {
-
-        return  new ResponseEntity(HttpStatus.NO_CONTENT);
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void updateSubTaskStatus( @PathVariable Integer taskId, @PathVariable Integer subTaskId, @RequestBody SubTaskPatchReqDTO subTaskPatchReqDTO) {
+            subTasksService.updateSubTaskStatus(taskId, subTaskId, subTaskPatchReqDTO.status());
     }
 
     @PreAuthorize("hasRole('MANAGER')")
     @DeleteMapping("/{taskId}")
-    public  ResponseEntity deleteAllSubTask(@PathVariable Integer taskId) {
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public  void deleteAllSubTask(@PathVariable Integer taskId) {
         subTasksService.deleteAllSubTask(taskId);
-        return  new ResponseEntity(HttpStatus.NO_CONTENT);
     }
 }

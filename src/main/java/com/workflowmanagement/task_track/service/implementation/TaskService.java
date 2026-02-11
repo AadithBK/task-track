@@ -4,7 +4,9 @@ import com.workflowmanagement.task_track.dto.ResponseTaskCreateDto;
 import com.workflowmanagement.task_track.dto.TaskCreateDto;
 import com.workflowmanagement.task_track.dto.TaskDto;
 import com.workflowmanagement.task_track.enums.Department;
+import com.workflowmanagement.task_track.enums.subTaskEnum.SubTaskStatusEnum;
 import com.workflowmanagement.task_track.enums.taskenum.TaskStatus;
+import com.workflowmanagement.task_track.exceptions.WorkflowUpdateException;
 import com.workflowmanagement.task_track.mapper.TaskMapper;
 import com.workflowmanagement.task_track.model.Task;
 import com.workflowmanagement.task_track.model.User;
@@ -12,12 +14,11 @@ import com.workflowmanagement.task_track.model.UserPrincipal;
 import com.workflowmanagement.task_track.model.workflow.Workflow;
 import com.workflowmanagement.task_track.model.workflow.WorkflowStep;
 import com.workflowmanagement.task_track.model.workflow.template.WorkflowTemplate;
-import com.workflowmanagement.task_track.repository.TaskRepository;
-import com.workflowmanagement.task_track.repository.UserRepository;
-import com.workflowmanagement.task_track.repository.WorkflowRepository;
-import com.workflowmanagement.task_track.repository.WorkflowStepsRepository;
+import com.workflowmanagement.task_track.repository.*;
+import com.workflowmanagement.task_track.service.ISubTaskService;
 import com.workflowmanagement.task_track.service.ITaskService;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -106,6 +107,7 @@ public class TaskService implements ITaskService {
             task.setDescription(t.getDescription());
             task.setAssignedToUser(updateUser.orElseGet(task::getAssignedToUser));
             task.setPriority(t.getPriority());
+
             task.setStatus(t.getStatus());
             task.setDueDate(t.getDueDate());
 
@@ -144,6 +146,7 @@ public class TaskService implements ITaskService {
         }
     }
 
+
     public void changeStatusOnDeletion(Task task , TaskStatus taskStatus){
         task.setStatus(taskStatus);
     }
@@ -159,6 +162,21 @@ public class TaskService implements ITaskService {
         }
         return false;
     }
+
+    @Override
+    public TaskDto updateTaskStatus(Integer taskId, TaskStatus taskStatus) {
+        Task task = taskRepository.findById(taskId).orElseThrow(() -> new EntityNotFoundException("The task was not found"));
+        if(task.getStatus().equals(TaskStatus.COMPLETED)) throw new ValidationException("Task has been completed");
+      if(task.getStatus().equals(taskStatus)) throw new ValidationException("New state is same as old state");
+      if(taskStatus.equals(TaskStatus.COMPLETED) && task.getSubTasks()
+                .stream()
+                .filter(subTask -> subTask.getStatus().equals(SubTaskStatusEnum.COMPLETED))
+                .toArray().length != task.getSubTasks().toArray().length) throw new ValidationException("Some task are not completed");
+      task.setStatus(taskStatus);
+
+        return  taskMapper.toDto(task);
+    }
+
 
     public long getCompletedCountByUser(Integer userId) {
         // Note: Using the TaskStatus Enum instead of String "COMPLETED"
