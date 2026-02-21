@@ -4,10 +4,12 @@ import com.workflowmanagement.task_track.dto.workflow.ResponseCreateNewWorkflowD
 import com.workflowmanagement.task_track.dto.workflow.ResponseGetWorkflowByIDDTO;
 import com.workflowmanagement.task_track.dto.workflow.WorkflowStepUpdateStatusReqDTO;
 import com.workflowmanagement.task_track.enums.Department;
+import com.workflowmanagement.task_track.enums.notificationEnum.NotificationType;
 import com.workflowmanagement.task_track.enums.subTaskEnum.SubTaskStatusEnum;
 import com.workflowmanagement.task_track.enums.taskenum.TaskStatus;
 import com.workflowmanagement.task_track.enums.workspace.WorkflowStatus;
 import com.workflowmanagement.task_track.enums.workspace.WorkflowStepStatus;
+import com.workflowmanagement.task_track.event.WorkflowEvent;
 import com.workflowmanagement.task_track.exceptions.WorkflowUpdateException;
 import com.workflowmanagement.task_track.mapper.WorkflowTemplateMapper;
 import com.workflowmanagement.task_track.model.Comment;
@@ -24,9 +26,11 @@ import jakarta.transaction.Transactional;
 import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.sql.ConnectionBuilder;
 import java.util.List;
 
 @Service
@@ -41,7 +45,7 @@ public class WorkflowService implements IWorkflowService {
     private final WorkflowStepsRepository workflowStepsRepository;
     private final TaskRepository taskRepository;
     private final CommentRepository commentRepository;
-
+    private final ApplicationEventPublisher eventPublisher;
     @Override
     public ResponseCreateNewWorkflowDTO createWorkflowFromTemplate(Integer workflowTemplateID) {
         WorkflowTemplate workflowTemplate = workflowTemplateRepository.findById(workflowTemplateID).orElseThrow(() -> new EntityNotFoundException("Workflow Template with ID " + workflowTemplateID + " does not exist"));
@@ -148,11 +152,30 @@ public class WorkflowService implements IWorkflowService {
 
 
         switch (dto.getStepStatus()) {
+
             case WorkflowStepStatus.APPROVED -> {
+                var auth  = SecurityContextHolder.getContext().getAuthentication();
+                var principal = (UserPrincipal) auth.getPrincipal();
+                Integer user = principal.user().getUserId();
                 workflowStep.setStatus(WorkflowStepStatus.APPROVED);
+                Integer actorId = principal.user().getUserId();
+                Integer receiverId = workflowStep.getWorkflow().getCreatedBy().getUserId();
+
+                if (!receiverId.equals(actorId)) {
+                    eventPublisher.publishEvent(
+                            new WorkflowEvent(
+                                    receiverId,
+                                    NotificationType.TASK_APPROVED,
+                                    "Workflow step approved: " + workflowStep.getStepName()
+                            )
+                    );
+                }
 
             }
             case WorkflowStepStatus.REJECTED -> {
+                var auth  = SecurityContextHolder.getContext().getAuthentication();
+                var principal = (UserPrincipal) auth.getPrincipal();
+                Integer user = principal.user().getUserId();
                 Task taskToUpdate = workflowStep
                         .getTask()
                         .stream()
@@ -168,6 +191,18 @@ public class WorkflowService implements IWorkflowService {
                 workflowStep.setStatus(WorkflowStepStatus.REJECTED);
 //                workflowStepsRepository.save(workflowStep);
                 commentRepository.save(comment);
+                Integer actorId = principal.user().getUserId();
+                Integer receiverId = taskToUpdate.getAssignedToUser().getUserId();
+
+                if (!receiverId.equals(actorId)) {
+                    eventPublisher.publishEvent(
+                            new WorkflowEvent(
+                                    receiverId,
+                                    NotificationType.TASK_REJECTED,
+                                    "Task rejected in workflow: " + taskToUpdate.getTitle()
+                            )
+                    );
+                }
 
 
             }

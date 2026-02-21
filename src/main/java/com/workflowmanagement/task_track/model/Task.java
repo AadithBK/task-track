@@ -28,6 +28,9 @@ public class Task {
 //@OneToMany(mappedBy = "taskId")
     private Integer taskId;
 
+    private Boolean notified1Day = false;
+    private Boolean notified1Hour = false;
+    private Boolean notifiedOverdue = false;
 
     @OneToMany(mappedBy = "taskId", fetch = FetchType.EAGER)
    @JsonBackReference

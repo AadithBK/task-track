@@ -1,13 +1,17 @@
 package com.workflowmanagement.task_track.service.implementation;
 import com.workflowmanagement.task_track.dto.CommentDto;
 import com.workflowmanagement.task_track.model.UserPrincipal;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import com.workflowmanagement.task_track.model.Comment;
 import com.workflowmanagement.task_track.repository.CommentRepository;
 import com.workflowmanagement.task_track.service.ICommentService;
-
+import com.workflowmanagement.task_track.event.WorkflowEvent;
+import com.workflowmanagement.task_track.enums.notificationEnum.NotificationType;
+import com.workflowmanagement.task_track.model.Task;
+import com.workflowmanagement.task_track.repository.TaskRepository;
 import java.util.List;
 import java.util.Optional;
 
@@ -15,10 +19,12 @@ import java.util.Optional;
 public class CommentService implements ICommentService {
 
     private final CommentRepository commentRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     // Constructor injection (best practice)
-    public CommentService(CommentRepository commentRepository) {
+    public CommentService(CommentRepository commentRepository, ApplicationEventPublisher eventPublisher) {
         this.commentRepository = commentRepository;
+        this.eventPublisher = eventPublisher;
     }
 
 
@@ -36,7 +42,35 @@ public class CommentService implements ICommentService {
             comment.setText(commentDTO.getText());
             comment.setUserId(currentUserId);
 
-            return commentRepository.save(comment);
+            Comment savedComment = commentRepository.save(comment);
+
+// Determine receivers
+            Integer creatorId = task.getCreatedByUser().getUserId();
+            Integer assigneeId = task.getAssignedToUser().getUserId();
+
+// Notify creator (if not commenter)
+            if (!creatorId.equals(currentUserId)) {
+                eventPublisher.publishEvent(
+                        new WorkflowEvent(
+                                creatorId,
+                                NotificationType.TASK_STATUS_UPDATE,
+                                "New comment by " + userPrincipal.user().getUserName()+ "on task:"+ task.getTitle()
+                        )
+                );
+            }
+
+// Notify assignee (if not commenter)
+            if (!assigneeId.equals(currentUserId)) {
+                eventPublisher.publishEvent(
+                        new WorkflowEvent(
+                                assigneeId,
+                                NotificationType.TASK_STATUS_UPDATE,
+                                "New comment by " + userPrincipal.user().getUserName()+ "on task:"+ task.getTitle()
+                        )
+                );
+            }
+
+            return savedComment;
         }
 
 
