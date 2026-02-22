@@ -2,6 +2,8 @@ package com.workflowmanagement.task_track.service.implementation;
 import com.workflowmanagement.task_track.dto.CommentDto;
 import com.workflowmanagement.task_track.model.UserPrincipal;
 import org.springframework.context.ApplicationEventPublisher;
+import com.workflowmanagement.task_track.repository.TaskRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -11,36 +13,44 @@ import com.workflowmanagement.task_track.service.ICommentService;
 import com.workflowmanagement.task_track.event.WorkflowEvent;
 import com.workflowmanagement.task_track.enums.notificationEnum.NotificationType;
 import com.workflowmanagement.task_track.model.Task;
-import com.workflowmanagement.task_track.repository.TaskRepository;
 import java.util.List;
-import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor // Using Lombok to handle constructor injection for both repositories
 public class CommentService implements ICommentService {
 
     private final CommentRepository commentRepository;
+    private final TaskRepository taskRepository; // Required to check assignment
     private final ApplicationEventPublisher eventPublisher;
 
-    // Constructor injection (best practice)
-    public CommentService(CommentRepository commentRepository, ApplicationEventPublisher eventPublisher) {
-        this.commentRepository = commentRepository;
-        this.eventPublisher = eventPublisher;
-    }
 
+    @Override
+    public Comment addComment(CommentDto commentDTO) {
+        // 1. Get current authenticated user and their Role
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        UserPrincipal userPrincipal = (UserPrincipal) auth.getPrincipal();
+        Integer currentUserId = userPrincipal.user().getUserId();
 
-        @Override
-        public Comment addComment(CommentDto commentDTO) {
-            // Get current authenticated user ID
-            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-            var userPrincipal =  (UserPrincipal) auth.getPrincipal();
-//            Integer currentUserId = Integer.valueOf(auth.getUserId());
-            Integer currentUserId = userPrincipal.user().getUserId();
-            // assuming username is userId, otherwise map properly
+        // Get the role (assuming your User entity or Principal has a getRole() method)
+        String userRole = userPrincipal.user().getRole().name();
 
-            Comment comment = new Comment();
-            comment.setTaskId(commentDTO.getTaskId());
-            comment.setText(commentDTO.getText());
-            comment.setUserId(currentUserId);
+        // 2. Fetch the Task to check assignment
+        Task task = taskRepository.findById(Math.toIntExact(commentDTO.getTaskId()))
+                .orElseThrow(() -> new RuntimeException("Task not found with ID: " + commentDTO.getTaskId()));
+
+        // 3. Authorization Logic
+        boolean isManager = userRole.equals("MANAGER");
+        boolean isAssignedUser = task.getAssignedToUser().getUserId().equals(currentUserId);
+
+        if (!isManager && !isAssignedUser) {
+            throw new RuntimeException("Access Denied: You are not assigned to this task.");
+        }
+
+        // 4. Save the comment if authorized
+        Comment comment = new Comment();
+        comment.setTaskId(commentDTO.getTaskId());
+        comment.setText(commentDTO.getText());
+        comment.setUserId(currentUserId);
 
             Comment savedComment = commentRepository.save(comment);
 
@@ -74,12 +84,81 @@ public class CommentService implements ICommentService {
         }
 
 
+
+
+
     @Override
     public List<Comment> getCommentsByTask(Long taskId) {
+        // 1. Get current authenticated user and their Role
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        UserPrincipal userPrincipal = (UserPrincipal) auth.getPrincipal();
+        Integer currentUserId = userPrincipal.user().getUserId();
 
+        // Get the role
+        String userRole = userPrincipal.user().getRole().name();
 
+        // 2. Fetch the Task to check assignment
+        // Using Math.toIntExact to match your addComment implementation
+        Task task = taskRepository.findById(Math.toIntExact(taskId))
+                .orElseThrow(() -> new RuntimeException("Task not found with ID: " + taskId));
+
+        // 3. Authorization Logic
+        boolean isManager = userRole.equals("MANAGER");
+        boolean isAssignedUser = task.getAssignedToUser().getUserId().equals(currentUserId);
+
+        if (!isManager && !isAssignedUser) {
+            throw new RuntimeException("Access Denied: You cannot view comments for a task not assigned to you.");
+        }
+
+        // 4. Return the list of comments if authorized
         return commentRepository.findByTaskId(taskId);
     }
+}
+
+//    @Override
+//    public List<Comment> getCommentsByTask(Long taskId) {
+//        return commentRepository.findByTaskId(taskId);
+//    }
+//}
+
+
+
+
+//@Service
+//public class CommentService implements ICommentService {
+//
+//    private final CommentRepository commentRepository;
+//
+//    // Constructor injection (best practice)
+//    public CommentService(CommentRepository commentRepository) {
+//        this.commentRepository = commentRepository;
+//    }
+//
+//
+//        @Override
+//        public Comment addComment(CommentDto commentDTO) {
+//            // Get current authenticated user ID
+//            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+//            var userPrincipal =  (UserPrincipal) auth.getPrincipal();
+////            Integer currentUserId = Integer.valueOf(auth.getUserId());
+//            Integer currentUserId = userPrincipal.user().getUserId();
+//            // assuming username is userId, otherwise map properly
+//
+//            Comment comment = new Comment();
+//            comment.setTaskId(commentDTO.getTaskId());
+//            comment.setText(commentDTO.getText());
+//            comment.setUserId(currentUserId);
+//
+//            return commentRepository.save(comment);
+//        }
+//
+//
+//    @Override
+//    public List<Comment> getCommentsByTask(Long taskId) {
+//
+//
+//        return commentRepository.findByTaskId(taskId);
+//    }
 
 //    @Override
 //    public Comment getCommentById(Long commentId) {
@@ -96,4 +175,4 @@ public class CommentService implements ICommentService {
 //            throw new RuntimeException("Comment not found with ID: " + commentId);
 //        }
 //    }
-}
+//}
