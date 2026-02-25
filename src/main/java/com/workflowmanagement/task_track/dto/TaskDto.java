@@ -1,5 +1,6 @@
 package com.workflowmanagement.task_track.dto;
 
+import com.workflowmanagement.task_track.dto.workflow.helper.HelperSubTaskModel;
 import com.workflowmanagement.task_track.enums.taskenum.TaskPriority;
 import com.workflowmanagement.task_track.enums.taskenum.TaskStatus;
 import com.workflowmanagement.task_track.model.SubTask;
@@ -35,7 +36,7 @@ public class TaskDto {
 
     private Instant dueDate;
 
-//    private List<SubTask> subTasks;
+    private List<HelperSubTaskModel> subTasks;
 //
 
 }

@@ -2,8 +2,6 @@ package com.workflowmanagement.task_track.repository;
 
 import com.workflowmanagement.task_track.enums.Department;
 import com.workflowmanagement.task_track.enums.taskenum.TaskStatus;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import com.workflowmanagement.task_track.model.Task;
