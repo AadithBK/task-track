@@ -35,13 +35,13 @@ private UserRepository userRepository;
 
     public SubTask save(SubTaskCreateRequestDTO subTaskDTOObject) {
         Task findParentTask = taskRepository.findById(subTaskDTOObject.taskId()).orElseThrow(() -> new EntityNotFoundException("Parent Task does not exists"));
-        User findAssignedToUser = userRepository.findById(subTaskDTOObject.assignedToUserId()).orElseThrow(() -> new EntityNotFoundException("User does not exists"));
+//        User findAssignedToUser = userRepository.findById(subTaskDTOObject.assignedToUserId()).orElseThrow(() -> new EntityNotFoundException("User does not exists"));
         SubTask newSubTask = SubTask.builder()
                 .taskId(findParentTask)
                 .title(subTaskDTOObject.title())
                 .status(
                         subTaskDTOObject.status() != null? SubTaskStatusEnum.valueOf(String.valueOf(subTaskDTOObject.status())): SubTaskStatusEnum.OPEN)
-                .assignedToUserId(findAssignedToUser)
+                .assignedToUserId(findParentTask.getAssignedToUser())
                 .build();
 //        System.out.println(newSubTask.getTaskId() + " " + newSubTask.getAssignedToUserId().getUserId() + " " + newSubTask);
 
