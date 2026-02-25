@@ -39,7 +39,6 @@ public class WorkflowTemplateService implements IWorkFlowTemplateService {
 
 //        Get mapper for converting DTO to entities
     WorkflowTemplate workflowTemplate1 = mapper.toEntity(createTemplateDto);
-    workflowTemplate1.setWorkflowTemplateSteps(createTemplateDto.getWorkflowSteps().size());
     workflowTemplate1.setStatus(true);
     return  mapper.toCustomResponseDto(workflowTemplateRepository.save(workflowTemplate1));
     }

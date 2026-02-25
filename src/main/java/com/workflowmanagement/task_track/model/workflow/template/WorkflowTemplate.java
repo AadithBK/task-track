@@ -30,9 +30,6 @@ public class WorkflowTemplate {
     @Column(nullable = false)
     @NotBlank(message = "Template Name is required")
     private String workflowTemplateName;
-    @Column(nullable = false)
-    @Min(value = 1, message = "Position must be at least 1")
-    private int workflowTemplateSteps;
 
     @Column(nullable = false)
     private boolean status = true;
