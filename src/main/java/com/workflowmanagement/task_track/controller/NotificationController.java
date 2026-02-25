@@ -16,7 +16,7 @@ public class NotificationController {
         this.service = service;
     }
 
-    //@PostMapping
+    // @PostMapping
 //    public Notification createNotification(
 //            @RequestParam Integer userId,
 //            @RequestParam NotificationType type,
@@ -27,5 +27,15 @@ public class NotificationController {
     @GetMapping("/{userId}")
     public List<Notification> getUserNotifications(@PathVariable Long userId) {
         return service.getNotifications(userId);
+    }
+
+    @PatchMapping("/{id}/read")
+    public Notification markAsRead(@PathVariable Long id) {
+        return service.markAsRead(id);
+    }
+
+    @GetMapping("/{userId}/unread-count")
+    public long getUnreadCount(@PathVariable Long userId) {
+        return service.getUnreadCount(userId);
     }
 }

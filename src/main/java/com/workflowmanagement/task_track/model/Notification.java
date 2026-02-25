@@ -24,7 +24,7 @@ public class Notification {
 
     @Setter
     private String message;
-
+    @Setter
     private String status;
     private LocalDateTime createdDate;
 
