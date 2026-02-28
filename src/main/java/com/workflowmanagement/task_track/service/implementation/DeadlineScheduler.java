@@ -21,7 +21,7 @@ import java.util.List;
 public class DeadlineScheduler {
 
     private final TaskRepository taskRepository;
-    private final SubTaskRepository subTaskRepository;
+    //private final SubTaskRepository subTaskRepository;
     private final ApplicationEventPublisher publisher;
 
     // runs every 5 minutes
@@ -31,7 +31,7 @@ public class DeadlineScheduler {
         LocalDateTime now = LocalDateTime.now();
 
         checkTaskDeadlines(now);
-        checkSubTaskDeadlines(now);
+        //checkSubTaskDeadlines(now);
     }
 
     private void checkTaskDeadlines(LocalDateTime now) {
@@ -45,7 +45,7 @@ public class DeadlineScheduler {
             long minutes = ChronoUnit.MINUTES.between(now, task.getDueDate());
             Integer userId = task.getAssignedToUser().getUserId();
 
-            // 📅 1 DAY REMINDER
+            // 1 DAY REMINDER
             if (minutes <= 1440 && minutes > 1435 && !task.getNotified1Day()) {
 
                 publisher.publishEvent(new WorkflowEvent(
@@ -57,7 +57,7 @@ public class DeadlineScheduler {
                 task.setNotified1Day(true);
             }
 
-            // ⏰ 1 HOUR REMINDER
+            //  1 HOUR REMINDER
             if (minutes <= 60 && minutes > 55 && !task.getNotified1Hour()) {
 
                 publisher.publishEvent(new WorkflowEvent(
@@ -69,7 +69,7 @@ public class DeadlineScheduler {
                 task.setNotified1Hour(true);
             }
 
-            // 🚨 OVERDUE
+            //  OVERDUE
             if (minutes < 0 && !task.getNotifiedOverdue()) {
 
                 publisher.publishEvent(new WorkflowEvent(
@@ -83,53 +83,5 @@ public class DeadlineScheduler {
         }
 
         taskRepository.saveAll(tasks);
-    }
-
-    private void checkSubTaskDeadlines(LocalDateTime now) {
-
-        List<SubTask> list = subTaskRepository.findAll();
-
-        for (SubTask st : list) {
-
-            if (st.getDueDate() == null) continue;
-
-            long minutes = ChronoUnit.MINUTES.between(now, st.getDueDate());
-            Integer userId = st.getAssignedToUserId().getUserId();
-
-            if (minutes <= 1440 && minutes > 1435 && !st.getNotified1Day()) {
-
-                publisher.publishEvent(new WorkflowEvent(
-                        userId,
-                        NotificationType.DEADLINE_ALERT,
-                        "Subtask due tomorrow: " + st.getTitle()
-                ));
-
-                st.setNotified1Day(true);
-            }
-
-            if (minutes <= 60 && minutes > 55 && !st.getNotified1Hour()) {
-
-                publisher.publishEvent(new WorkflowEvent(
-                        userId,
-                        NotificationType.DEADLINE_ALERT,
-                        "Subtask due in 1 hour: " + st.getTitle()
-                ));
-
-                st.setNotified1Hour(true);
-            }
-
-            if (minutes < 0 && !st.getNotifiedOverdue()) {
-
-                publisher.publishEvent(new WorkflowEvent(
-                        userId,
-                        NotificationType.DEADLINE_ALERT,
-                        "Subtask overdue: " + st.getTitle()
-                ));
-
-                st.setNotifiedOverdue(true);
-            }
-        }
-
-        subTaskRepository.saveAll(list);
     }
 }
