@@ -3,18 +3,17 @@ package com.workflowmanagement.task_track.service.implementation;
 import com.workflowmanagement.task_track.enums.notificationEnum.NotificationType;
 import com.workflowmanagement.task_track.event.WorkflowEvent;
 import com.workflowmanagement.task_track.model.Task;
-import com.workflowmanagement.task_track.model.SubTask;
 
-import com.workflowmanagement.task_track.repository.SubTaskRepository;
 import com.workflowmanagement.task_track.repository.TaskRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+
 
 @Service
 @RequiredArgsConstructor
@@ -28,13 +27,13 @@ public class DeadlineScheduler {
     @Scheduled(fixedRate = 300000)
     public void checkDeadlines() {
 
-        LocalDateTime now = LocalDateTime.now();
+        Instant now = Instant.now();
 
         checkTaskDeadlines(now);
         //checkSubTaskDeadlines(now);
     }
 
-    private void checkTaskDeadlines(LocalDateTime now) {
+    private void checkTaskDeadlines(Instant now) {
 
         List<Task> tasks = taskRepository.findAll();
 

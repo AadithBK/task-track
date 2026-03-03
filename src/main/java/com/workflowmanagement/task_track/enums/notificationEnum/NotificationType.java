@@ -6,6 +6,9 @@ public enum NotificationType {
     APPROVAL_REQUIRED,
     TASK_APPROVED,
     TASK_REJECTED,
-    DEADLINE_ALERT
+    DEADLINE_ALERT,
+    USER_LOGIN,
+    USER_REGISTERED,
+    USER_ACTIVATED
 
 }

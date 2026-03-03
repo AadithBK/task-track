@@ -20,6 +20,7 @@ public class Notification {
     private  Integer userId;
     @Setter
     @Enumerated(EnumType.STRING)
+    @Column(length=50)
     private NotificationType type;
 
     @Setter
