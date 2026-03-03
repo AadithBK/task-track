@@ -39,11 +39,11 @@ public class NotificationService implements INotificationService {
         return saved;
     }
 
-    public List<Notification> getNotifications(Long userId) {
+    public List<Notification> getNotifications(Integer userId) {
         return repository.findByUserId(userId);
     }
 
-    public Notification markAsRead(Long id) {
+    public Notification markAsRead(Integer id) {
         Notification notification = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Notification not found"));
 
@@ -51,7 +51,7 @@ public class NotificationService implements INotificationService {
         return repository.save(notification);
     }
 
-    public long getUnreadCount(Long userId) {
+    public long getUnreadCount(Integer userId) {
         return repository.countByUserIdAndStatus(userId, "UNREAD");
     }
 }
