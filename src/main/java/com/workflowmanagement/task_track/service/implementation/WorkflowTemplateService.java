@@ -11,9 +11,7 @@ import com.workflowmanagement.task_track.model.workflow.template.WorkflowTemplat
 import com.workflowmanagement.task_track.model.workflow.template.WorkflowTemplateStep;
 import com.workflowmanagement.task_track.repository.WorkflowTemplateRepository;
 import com.workflowmanagement.task_track.service.IWorkFlowTemplateService;
-import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import org.mapstruct.factory.Mappers;
 import org.springframework.beans.factory.annotation.Autowired;

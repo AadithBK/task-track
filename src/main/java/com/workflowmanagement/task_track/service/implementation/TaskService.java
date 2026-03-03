@@ -44,9 +44,11 @@ public class TaskService implements ITaskService {
 
 
     public TaskDto createTask(TaskCreateDto task){
-
+        var auth  = SecurityContextHolder.getContext().getAuthentication();
+        var principal = (UserPrincipal) auth.getPrincipal();
+        Integer user = principal.user().getUserId();
         Optional<User> optAssignedUser = userService.getUserObjById(task.getAssignedToUserId());
-        Optional<User> optCreatedUser = userService.getUserObjById(task.getCreatedByUserId());
+        Optional<User> optCreatedUser = userService.getUserObjById(user);
         WorkflowStep workflowStep = workflowStepsRepository.findById(task.getWorkflowStepId()).orElseThrow(() -> new EntityNotFoundException("Workflow Step with ID " + task.getWorkflowStepId() + " does not exist"));
 
         if (optAssignedUser.isPresent() && optCreatedUser.isPresent() ){

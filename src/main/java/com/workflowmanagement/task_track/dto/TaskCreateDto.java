@@ -17,7 +17,6 @@ public class TaskCreateDto {
     private String description;
 
     private Integer assignedToUserId;
-    private Integer createdByUserId ;
 
     private TaskPriority priority;
     private TaskStatus status;
