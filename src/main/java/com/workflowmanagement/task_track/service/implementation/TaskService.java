@@ -166,6 +166,13 @@ public class TaskService implements ITaskService {
             Task task = optTask.get();
             changeStatusOnDeletion(task,TaskStatus.BLOCKED);
             taskRepository.save(task);
+            eventPublisher.publishEvent(
+                    new WorkflowEvent(
+                            task.getAssignedToUser().getUserId(),
+                            NotificationType.TASK_STATUS_UPDATE,
+                            "Task blocked: " + task.getTitle()
+                    )
+            );
             return true;
         }
         return false;
@@ -180,9 +187,20 @@ public class TaskService implements ITaskService {
                 .stream()
                 .filter(subTask -> subTask.getStatus().equals(SubTaskStatusEnum.COMPLETED))
                 .toArray().length != task.getSubTasks().toArray().length) throw new ValidationException("Some task are not completed");
+      TaskStatus oldStatus = task.getStatus();
       task.setStatus(taskStatus);
 
-        return  taskMapper.toDto(task);
+      if (oldStatus != taskStatus) {
+            eventPublisher.publishEvent(
+                    new WorkflowEvent(
+                            task.getCreatedByUser().getUserId(),
+                            NotificationType.TASK_STATUS_UPDATE,
+                            "Task status updated to " + taskStatus + ": " + task.getTitle()
+                    )
+            );
+        }
+
+      return  taskMapper.toDto(task);
     }
 
 

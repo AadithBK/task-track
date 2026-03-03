@@ -14,17 +14,18 @@ public class Notification {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long notificationId;
+    private int notificationId;
 
     @Setter
     private  Integer userId;
     @Setter
     @Enumerated(EnumType.STRING)
+    @Column(length=50)
     private NotificationType type;
 
     @Setter
     private String message;
-
+    @Setter
     private String status;
     private LocalDateTime createdDate;
 
