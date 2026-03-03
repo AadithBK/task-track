@@ -48,10 +48,16 @@ public class WorkflowController {
     workflowService.deleteWorkflow(workflowId);
 }
 
+
 @GetMapping("/{workflowId}")
     public CustomJSONResponse<ResponseGetWorkflowByIDDTO> getWorkflowById(@PathVariable Integer workflowId) {
         return  CustomJSONResponse.ok("", workflowService.getWorkflowById(workflowId));
 }
+
+    @GetMapping("/createdByMe")
+    public CustomJSONResponse<List<ResponseGetWorkflowByIDDTO>> getWorkflowByUserId() {
+        return  CustomJSONResponse.ok("", workflowService.getWorkflowByUserId());
+    }
 @PreAuthorize("hasRole('ADMIN')")
 @GetMapping("/department/{department}")
     public CustomJSONResponse<List<Workflow>> getWorkflowByDepartment(@Valid @PathVariable Department department) {

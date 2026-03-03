@@ -11,9 +11,7 @@ import com.workflowmanagement.task_track.model.workflow.template.WorkflowTemplat
 import com.workflowmanagement.task_track.model.workflow.template.WorkflowTemplateStep;
 import com.workflowmanagement.task_track.repository.WorkflowTemplateRepository;
 import com.workflowmanagement.task_track.service.IWorkFlowTemplateService;
-import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import org.mapstruct.factory.Mappers;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,7 +37,6 @@ public class WorkflowTemplateService implements IWorkFlowTemplateService {
 
 //        Get mapper for converting DTO to entities
     WorkflowTemplate workflowTemplate1 = mapper.toEntity(createTemplateDto);
-    workflowTemplate1.setWorkflowTemplateSteps(createTemplateDto.getWorkflowSteps().size());
     workflowTemplate1.setStatus(true);
     return  mapper.toCustomResponseDto(workflowTemplateRepository.save(workflowTemplate1));
     }
