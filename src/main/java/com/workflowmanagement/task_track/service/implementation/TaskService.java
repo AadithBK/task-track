@@ -6,20 +6,21 @@ import com.workflowmanagement.task_track.dto.TaskDto;
 import com.workflowmanagement.task_track.enums.Department;
 import com.workflowmanagement.task_track.enums.subTaskEnum.SubTaskStatusEnum;
 import com.workflowmanagement.task_track.enums.taskenum.TaskStatus;
-import com.workflowmanagement.task_track.exceptions.WorkflowUpdateException;
+
 import com.workflowmanagement.task_track.mapper.TaskMapper;
 import com.workflowmanagement.task_track.model.Task;
 import com.workflowmanagement.task_track.model.User;
 import com.workflowmanagement.task_track.model.UserPrincipal;
-import com.workflowmanagement.task_track.model.workflow.Workflow;
+
 import com.workflowmanagement.task_track.model.workflow.WorkflowStep;
-import com.workflowmanagement.task_track.model.workflow.template.WorkflowTemplate;
+
 import com.workflowmanagement.task_track.repository.*;
-import com.workflowmanagement.task_track.service.ISubTaskService;
+
 import com.workflowmanagement.task_track.service.ITaskService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import com.workflowmanagement.task_track.enums.notificationEnum.NotificationType;
@@ -31,6 +32,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+
 public class TaskService implements ITaskService {
     private final TaskMapper taskMapper;
     private final UserRepository userRepository;
@@ -39,10 +41,14 @@ public class TaskService implements ITaskService {
 
     private final ApplicationEventPublisher eventPublisher;
     private final WorkflowStepsRepository workflowStepsRepository;
-    public TaskDto createTask(TaskCreateDto task){
 
+
+    public TaskDto createTask(TaskCreateDto task){
+        var auth  = SecurityContextHolder.getContext().getAuthentication();
+        var principal = (UserPrincipal) auth.getPrincipal();
+        Integer user = principal.user().getUserId();
         Optional<User> optAssignedUser = userService.getUserObjById(task.getAssignedToUserId());
-        Optional<User> optCreatedUser = userService.getUserObjById(task.getCreatedByUserId());
+        Optional<User> optCreatedUser = userService.getUserObjById(user);
         WorkflowStep workflowStep = workflowStepsRepository.findById(task.getWorkflowStepId()).orElseThrow(() -> new EntityNotFoundException("Workflow Step with ID " + task.getWorkflowStepId() + " does not exist"));
 
         if (optAssignedUser.isPresent() && optCreatedUser.isPresent() ){
@@ -72,6 +78,7 @@ public class TaskService implements ITaskService {
 
     public List<TaskDto> getAllTasks(){
         List<Task> taskList =  taskRepository.findAll();
+        System.out.println(taskList.get(0).getSubTasks().size());
         return taskMapper.toDtoList(taskList);
     }
 

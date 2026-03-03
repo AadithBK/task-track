@@ -1,6 +1,8 @@
 package com.workflowmanagement.task_track.mapper;
 
 import com.workflowmanagement.task_track.dto.TaskDto;
+import com.workflowmanagement.task_track.dto.workflow.helper.HelperSubTaskModel;
+import com.workflowmanagement.task_track.model.SubTask;
 import com.workflowmanagement.task_track.model.Task;
 import com.workflowmanagement.task_track.model.User;
 import org.mapstruct.Mapper;
@@ -13,8 +15,10 @@ import java.util.List;
 public interface TaskMapper {
     @Mapping(target = "assignedToUser", source = "assignedToUser", qualifiedByName = "userToId")
     TaskDto toDto(Task task);
-    List<TaskDto> toDtoList(List<Task> taskList);
 
+ List<TaskDto> toDtoList(List<Task> taskList);
+
+    HelperSubTaskModel subTasksToHelperSubTaskModel(SubTask subTask);
     @Named("userToId")
     static Integer userToId(User user) {
         return (user == null) ? null : user.getUserId();

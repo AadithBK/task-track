@@ -10,5 +10,10 @@ import lombok.*;
 @NoArgsConstructor
 public class ResponseWorkflowDto extends  CreateTemplateDto{
     private int workflowTemplateId;
+    private String createdBy;
+    private String createdAt;
+
+
+
 
 }

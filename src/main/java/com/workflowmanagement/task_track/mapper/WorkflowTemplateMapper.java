@@ -62,6 +62,9 @@ public interface WorkflowTemplateMapper {
     HelperWorkflowStepModel toStepModel(WorkflowStep step);
 
     // 3. The Task Level (MapStruct uses this for the List<Task>)
+    @Mapping(target = "priority", source = "priority")
+    @Mapping(target = "status", source = "status")
+    @Mapping(target = "dueDate", source = "dueDate")
    HelperTaskModel toTaskModel(Task task);
 
     // 4. The User Level

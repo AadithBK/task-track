@@ -1,30 +1,42 @@
 # ---------- Build stage ----------
-FROM maven:3.9-eclipse-temurin-21 AS build
+FROM eclipse-temurin:21-jdk AS build
+
 WORKDIR /app
 
-# Copy only pom first to leverage build cache for dependencies
-COPY pom.xml .
-RUN mvn -q -B -e -DskipTests dependency:go-offline
+# Copy Maven wrapper and pom
+COPY .mvn/ .mvn/
+COPY mvnw pom.xml ./
 
-# Now copy sources and build
+# Pre-download dependencies (tests disabled)
+RUN ./mvnw -Dmaven.test.skip=true dependency:go-offline || mvn -Dmaven.test.skip=true dependency:go-offline
+
+# Copy source code
 COPY src ./src
-# Builds Spring Boot fat jar (default)
-# IMPORTANT: Skip compiling & running tests to unblock build
-RUN mvn -B -e -Dmaven.test.skip=true -DskipITs package
+
+# Build jar (no tests compiled or run)
+RUN ./mvnw -Dmaven.test.skip=true package || mvn -Dmaven.test.skip=true package
+
 
 # ---------- Runtime stage ----------
 FROM eclipse-temurin:21-jre
+
+# Environment variables (no "=")
+ENV DB_URL \
+    DB_USERNAME \
+    DB_PASSWORD \
+    JWT_SECRET
+
+# Expose port
+EXPOSE 8081
+
+# Create non-root user
+RUN useradd -m spring
+USER spring
+
 WORKDIR /app
 
-# NOTE: Running as root (per your request)
-# No useradd, no USER command needed.
+# Copy final jar from build stage
+COPY --chown=spring:spring --from=build /app/target/*.jar /app/app.jar
 
-# Copy built jar
-COPY --from=build /app/target/*.jar /app/app.jar
-
-EXPOSE 8080
-
-# JVM tuning
-ENV JAVA_OPTS="-XX:+UseZGC -XX:MaxRAMPercentage=75.0 -XX:InitialRAMPercentage=50.0 -XX:+TieredCompilation -XX:TieredStopAtLevel=1"
-
-ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar /app/app.jar"]
+# Run application on port 8081
+ENTRYPOINT ["java", "-Dserver.port=8081", "-jar", "/app/app.jar"]

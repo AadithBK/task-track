@@ -26,6 +26,7 @@ import jakarta.transaction.Transactional;
 import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.jdbc.Work;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -81,7 +82,10 @@ public class WorkflowService implements IWorkflowService {
         createWorkFlowFromTemplate.setWorkflowSteps(createWorkFlowSteps);
         createWorkFlowFromTemplate.setCurrentStep(createWorkFlowSteps.getFirst().getWorkflowStepId());
 
-        return workflowTemplateMapper.toCustomWorkflowResponse( workflowRepository.save(createWorkFlowFromTemplate));
+        Workflow savedWorkflow = workflowRepository.save(createWorkFlowFromTemplate);
+        savedWorkflow.setCurrentStep(savedWorkflow.getWorkflowSteps().getFirst().getWorkflowStepId());
+        workflowRepository.save(savedWorkflow);
+        return workflowTemplateMapper.toCustomWorkflowResponse(savedWorkflow);
     }
 
     @Override
@@ -127,7 +131,21 @@ public class WorkflowService implements IWorkflowService {
 
     }
 
+public List<ResponseGetWorkflowByIDDTO> getWorkflowByUserId() {
+    var auth  = SecurityContextHolder.getContext().getAuthentication();
+    var principal = (UserPrincipal) auth.getPrincipal();
+    assert principal != null;
+    Integer user = principal.user().getUserId();
+        List<Workflow> workflowsCreatedByUser = workflowRepository.findByCreatedBy_UserId(user);
+        return  workflowsCreatedByUser.stream().map(el -> {
+            List<WorkflowStep> orderedSteps = workflowStepsRepository.findByWorkflow_WorkflowIdOrderByStepAsc(el.getWorkflowId());
 
+            // 3. Attach the ordered list back to the workflow object (optional, for the return DTO)
+            el.setWorkflowSteps(orderedSteps);
+            return  workflowTemplateMapper.toGetByIdDto(el);
+        }).toList();
+
+}
 
 
     @Transactional
@@ -141,11 +159,11 @@ public class WorkflowService implements IWorkflowService {
 
 
         boolean hasOpenTasks = workflowStep.getTask().stream()
-                .noneMatch(t -> {
+                .anyMatch(t -> {
                     System.out.println(t.getTaskId());
-                    return  TaskStatus.COMPLETED.equals(t.getStatus());
+                    return  !TaskStatus.COMPLETED.equals(t.getStatus());
                 });
-
+System.out.println(hasOpenTasks + "open staskas");
         if (hasOpenTasks) {
             throw new WorkflowUpdateException("Workflow Step has some open tasks");
         }
@@ -206,7 +224,25 @@ public class WorkflowService implements IWorkflowService {
 
 
             }
-            case PENDING -> {}
+            case PENDING -> {
+                workflowStep.setStatus(WorkflowStepStatus.PENDING);
+            }
+        }
+
+        Workflow workflow = workflowStep.getWorkflow();
+        if((workflow.getStatus().equals(WorkflowStatus.PENDING) || workflow.getStatus().equals(WorkflowStatus.COMPLETED)) && workflow.getWorkflowSteps().stream().anyMatch(el -> el.getTask().stream().anyMatch(e -> e.getStatus().equals(TaskStatus.IN_PROGRESS) || e.getStatus().equals(TaskStatus.COMPLETED) ))) {
+            workflow.setStatus(WorkflowStatus.INPROGRESS);
+        }
+        if( workflow.getCurrentStep() <= workflow.getWorkflowSteps().size() ) {
+
+            WorkflowStep nextStep =  workflow.getWorkflowSteps().stream().filter(step -> step.getStep().equals(workflowStep.getStep() + 1)).toList().getFirst();
+
+            workflow.setCurrentStep(nextStep.getWorkflowStepId());
+            workflowRepository.save(workflow);
+        }
+
+        if(workflow.getWorkflowSteps().stream().allMatch(el -> el.getStatus().equals(WorkflowStepStatus.APPROVED))) {
+            workflow.setStatus(WorkflowStatus.COMPLETED);
         }
 
 

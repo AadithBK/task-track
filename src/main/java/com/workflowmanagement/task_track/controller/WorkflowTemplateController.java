@@ -51,6 +51,7 @@ public class WorkflowTemplateController {
         return  CustomJSONResponse.ok(null,workflowTemplateService.getWorkflowTemplate(templateId));
     }
 
+    @PreAuthorize("hasRole('MANAGER')")
     @GetMapping("/all")
     public CustomJSONResponse<List<ResponseWorkflowDto>> getAllWorkflowTemplates() {
         return CustomJSONResponse.ok(null,workflowTemplateService.getAllWorkFlowTemplates());
