@@ -5,6 +5,7 @@ import com.workflowmanagement.task_track.dto.ResponseTaskCreateDto;
 import com.workflowmanagement.task_track.dto.TaskCreateDto;
 import com.workflowmanagement.task_track.dto.TaskDto;
 import com.workflowmanagement.task_track.enums.taskenum.TaskStatus;
+import com.workflowmanagement.task_track.model.Task;
 import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.Modifying;
 
@@ -30,10 +31,9 @@ public interface ITaskService {
     /**
      * Finds tasks created by a given user.
      *
-     * @param id creator userId
      * @return list of TaskDto
      */
-    List<TaskDto> getTasksByCreatorId(Integer id);
+    List<TaskDto> getTasksByCreatorId();
 
     /**
      * Finds tasks assigned to the currently authenticated user (via SecurityContext).
@@ -42,6 +42,13 @@ public interface ITaskService {
      */
     List<TaskDto> getTasksAssignedToUser();
 
+
+    /**
+     * Finds task by the id.
+     *
+     * @return TaskDto
+     */
+    TaskDto getTaskById(int id);
     /**
      * Updates a task by ID with the fields present in TaskDto.
      *

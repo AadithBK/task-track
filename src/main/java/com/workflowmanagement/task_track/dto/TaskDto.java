@@ -27,6 +27,9 @@ public class TaskDto {
     private  Integer assignedToUser;
 
     @NotNull
+    private Integer createdByUser;
+
+    @NotNull
     @Enumerated(EnumType.STRING)
     private TaskStatus status;
 

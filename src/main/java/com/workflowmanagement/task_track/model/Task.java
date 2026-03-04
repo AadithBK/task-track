@@ -75,7 +75,11 @@ public class Task {
     private TaskStatus status;
 
     @Column()
-    @JsonFormat(shape = JsonFormat.Shape.STRING)
+    @JsonFormat(
+            shape = JsonFormat.Shape.STRING,
+            pattern = "yyyy-MM-dd'T'HH:mm",
+            timezone = "Asia/Kolkata"
+    )
     private Instant dueDate ;
 
     @ManyToOne
