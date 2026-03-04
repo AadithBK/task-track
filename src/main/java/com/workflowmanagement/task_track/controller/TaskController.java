@@ -41,11 +41,18 @@ public class TaskController {
                 taskList), HttpStatus.OK);
     }
 
-    @GetMapping("createdby/{id}")
+    @GetMapping("createdby/")
     @PreAuthorize("hasRole('MANAGER')")
-    public ResponseEntity<CustomJSONResponse<List<TaskDto>>> getAllTasksByCreator(@Valid @PathVariable int id) {
-        List<TaskDto> taskList = taskService.getTasksByCreatorId(id);
+    public ResponseEntity<CustomJSONResponse<List<TaskDto>>> getAllTasksByCreator() {
+        List<TaskDto> taskList = taskService.getTasksByCreatorId();
         return new ResponseEntity<>(CustomJSONResponse.ok("tasks fetched successfully",  taskList), HttpStatus.OK);
+    }
+
+    @GetMapping("id/{id}")
+    @PreAuthorize("hasRole('MANAGER')")
+    public ResponseEntity<CustomJSONResponse<TaskDto>> getTaskById(@Valid @PathVariable Integer id){
+        TaskDto task = taskService.getTaskById(id);
+        return new ResponseEntity<>(CustomJSONResponse.ok("task fetched successfully ",task),HttpStatus.OK);
     }
 
     @GetMapping("my")

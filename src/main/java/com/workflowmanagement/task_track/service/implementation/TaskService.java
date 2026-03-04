@@ -82,11 +82,17 @@ public class TaskService implements ITaskService {
         return taskMapper.toDtoList(taskList);
     }
 
-
-    public List<TaskDto> getTasksByCreatorId(Integer id){
+    @Override
+    public List<TaskDto> getTasksByCreatorId() {
+        var auth  = SecurityContextHolder.getContext().getAuthentication();
+        var principal = (UserPrincipal) auth.getPrincipal();
+        int id = principal.user().getUserId();
         List<Task> taskList =  taskRepository.findByCreatedByUser_UserId(id);
         return taskMapper.toDtoList(taskList);
     }
+
+
+
 
     public List<TaskDto> getTasksAssignedToUser(){
         var auth  = SecurityContextHolder.getContext().getAuthentication();
@@ -95,6 +101,13 @@ public class TaskService implements ITaskService {
 
         List<Task> taskList =  taskRepository.findByAssignedToUser_UserId(id);
         return taskMapper.toDtoList(taskList);
+    }
+
+    @Override
+    public TaskDto getTaskById(int id) {
+        Optional<Task> optTask = taskRepository.findById(id);
+        Task task = optTask.get();
+        return taskMapper.toDto(task);
     }
 
     public TaskDto updateTaskById(TaskDto t){
