@@ -1,5 +1,8 @@
 package com.workflowmanagement.task_track.service.implementation;
 
+import com.workflowmanagement.task_track.enums.notificationEnum.NotificationType;
+import com.workflowmanagement.task_track.enums.Role;
+import com.workflowmanagement.task_track.event.WorkflowEvent;
 import com.workflowmanagement.task_track.exceptions.AwaitingApprovalException;
 import com.workflowmanagement.task_track.exceptions.InvalidCredentialsException;
 import com.workflowmanagement.task_track.exceptions.UserAlreadyExistsException;
@@ -16,6 +19,7 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -35,6 +39,12 @@ public class UserService implements IUserService {
     @Autowired
     private UserMapper userMapper;
 
+    @Autowired
+    private ApplicationEventPublisher eventPublisher;
+
+    private List<User> getAdmins(){
+        return userRepository.findByRole(Role.ADMIN);
+    }
 
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
 
@@ -60,8 +70,21 @@ public class UserService implements IUserService {
         user.setPassword(encoder.encode(userDto.getPassword()));
 
         User savedUser= userRepository.save(user);
+        List<User> admins = getAdmins();
+
+        for (User admin : admins) {
+            eventPublisher.publishEvent(
+                    new WorkflowEvent(
+                            admin.getUserId(),
+                            NotificationType.USER_REGISTERED,
+                            "New user registered: " + savedUser.getEmail()
+                    )
+            );
+        }
         return userMapper.userToUserResponseDto(savedUser);
     }
+
+
 
     public String loginUser(String email, String password) {
         User user = userRepository.findByEmail(email)
@@ -74,7 +97,18 @@ public class UserService implements IUserService {
 
 
         String roleName=(user.getRole()!=null?user.getRole().name():"NONE");
-        return jwtUtil.generateToken(user.getEmail(), roleName);
+        String token= jwtUtil.generateToken(user.getEmail(), roleName);
+        List<User> admins = getAdmins();
+        for (User admin : admins) {
+            eventPublisher.publishEvent(
+                    new WorkflowEvent(
+                            admin.getUserId(),
+                            NotificationType.USER_LOGIN,
+                            "User logged in: " + user.getEmail()
+                    )
+            );
+        }
+        return token;
     }
 
     public List<UserResponseDto> getAllUsers() {
@@ -127,6 +161,18 @@ public class UserService implements IUserService {
             user.setRole(activationDto.getRole());
             user.setStatus(activationDto.getStatus());
             User updatedUser=userRepository.save(user);
+            List<User> admins = getAdmins();
+
+            for (User admin : admins) {
+                eventPublisher.publishEvent(
+                        new WorkflowEvent(
+                                admin.getUserId(),
+                                NotificationType.USER_ACTIVATED,
+                                "User activated: " + updatedUser.getEmail()
+                                        + " Role: " + updatedUser.getRole()
+                        )
+                );
+            }
 
             return userMapper.userToUserResponseDto(updatedUser);
 

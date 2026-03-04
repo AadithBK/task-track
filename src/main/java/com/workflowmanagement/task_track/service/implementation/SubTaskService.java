@@ -3,7 +3,9 @@ package com.workflowmanagement.task_track.service.implementation;
 import com.workflowmanagement.task_track.dto.subTask.SubTaskCreateRequestDTO;
 import com.workflowmanagement.task_track.dto.subTask.SubTaskPatchReqDTO;
 import com.workflowmanagement.task_track.dto.subTask.SubTaskUpdateReqDTO;
+import com.workflowmanagement.task_track.enums.notificationEnum.NotificationType;
 import com.workflowmanagement.task_track.enums.subTaskEnum.SubTaskStatusEnum;
+import com.workflowmanagement.task_track.event.WorkflowEvent;
 import com.workflowmanagement.task_track.model.SubTask;
 import com.workflowmanagement.task_track.model.Task;
 import com.workflowmanagement.task_track.model.User;
@@ -45,7 +47,16 @@ private UserRepository userRepository;
                 .build();
 //        System.out.println(newSubTask.getTaskId() + " " + newSubTask.getAssignedToUserId().getUserId() + " " + newSubTask);
 
-        return subTaskRepository.save(newSubTask);
+        SubTask saved = subTaskRepository.save(newSubTask);
+        eventPublisher.publishEvent(
+                new WorkflowEvent(
+                        saved.getAssignedToUserId().getUserId(),
+                        NotificationType.TASK_ASSIGNED,
+                        "New subtask assigned: " + saved.getTitle()
+                )
+        );
+        return saved;
+
 
 
     }
@@ -73,6 +84,8 @@ private UserRepository userRepository;
             Optional<SubTask> subTask = subTaskRepository.findBySubTaskIdAndTaskId(subTaskId, findTask);
             subTask.orElseThrow(() -> new EntityNotFoundException("Sub Task not found"));
             SubTask st = subTask.get();
+            Integer oldAssigneeId = st.getAssignedToUserId().getUserId();
+            SubTaskStatusEnum oldStatus = st.getStatus();
             Boolean isUpdated = false;
                 if((st.getAssignedToUserId().getUserId() != subTaskUpdateReqDTO.assignedToUserId()) && subTaskUpdateReqDTO.assignedToUserId() != null ) {
                     User assignToNewUser =  userRepository.findById(subTaskUpdateReqDTO.assignedToUserId()).orElseThrow(() -> new EntityNotFoundException("User does not exists"));
@@ -90,7 +103,30 @@ private UserRepository userRepository;
               }
 
 
-                return  st;
+
+// REASSIGN NOTIFICATION
+            if (!oldAssigneeId.equals(st.getAssignedToUserId().getUserId())) {
+                eventPublisher.publishEvent(
+                        new WorkflowEvent(
+                                st.getAssignedToUserId().getUserId(),
+                                NotificationType.TASK_ASSIGNED,
+                                "Subtask reassigned to you: " + st.getTitle()
+                        )
+                );
+            }
+
+//  STATUS CHANGE NOTIFICATION
+            if (oldStatus != st.getStatus()) {
+                eventPublisher.publishEvent(
+                        new WorkflowEvent(
+                                findTask.getAssignedToUser().getUserId(),
+                                NotificationType.TASK_STATUS_UPDATE,
+                                "Subtask status updated to " + st.getStatus() + ": " + st.getTitle()
+                        )
+                );
+            }
+
+            return st;
 
         } else {
             throw new ValidationException("Task is created by another user");
@@ -147,8 +183,20 @@ private UserRepository userRepository;
             Optional<SubTask> subTask = subTaskRepository.findBySubTaskIdAndTaskId(subTaskId, findTask);
             subTask.orElseThrow(() -> new EntityNotFoundException("Sub Task not found"));
             SubTask st = subTask.get();
+            SubTaskStatusEnum oldStatus = st.getStatus();
             st.setStatus(subTaskPatchReqDTO.status());
-            return  st;
+
+            if (oldStatus != subTaskPatchReqDTO.status()) {
+                eventPublisher.publishEvent(
+                        new WorkflowEvent(
+                                findTask.getCreatedByUser().getUserId(),
+                                NotificationType.TASK_STATUS_UPDATE,
+                                "Subtask status updated to " + subTaskPatchReqDTO.status() + ": " + st.getTitle()
+                        )
+                );
+            }
+
+            return st;
         } else {
             throw new ValidationException("Task is created by another user");
         }
@@ -158,9 +206,23 @@ private UserRepository userRepository;
     @Override
     @Transactional
     public void updateSubTaskStatus(Integer taskId, Integer subTaskId, SubTaskStatusEnum status) {
-        SubTask subTask = subTaskRepository.findBySubTaskIdAndTaskId_TaskId(subTaskId, taskId).orElseThrow(() -> new EntityNotFoundException("Sub Task not found"));
-     subTask.setStatus(status);
 
+        SubTask subTask = subTaskRepository
+                .findBySubTaskIdAndTaskId_TaskId(subTaskId, taskId)
+                .orElseThrow(() -> new EntityNotFoundException("Sub Task not found"));
+
+        SubTaskStatusEnum oldStatus = subTask.getStatus();
+        subTask.setStatus(status);
+
+        if (oldStatus != status) {
+            eventPublisher.publishEvent(
+                    new WorkflowEvent(
+                            subTask.getTaskId().getAssignedToUser().getUserId(),
+                            NotificationType.TASK_STATUS_UPDATE,
+                            "Subtask status updated to " + status + ": " + subTask.getTitle()
+                    )
+            );
+        }
     }
 
 
