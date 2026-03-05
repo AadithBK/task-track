@@ -41,7 +41,7 @@ public class WorkflowStep {
 
     private Integer step;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
     @JoinColumn(name = "fk_workflow_id") // The physical column remains here
     private Workflow workflow;
 

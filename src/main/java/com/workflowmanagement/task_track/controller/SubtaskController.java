@@ -53,7 +53,7 @@ public class SubtaskController {
         return  new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    @PreAuthorize("hasRole('EMPLOYEE')")
+    @PreAuthorize("hasAnyRole('MANAGER','EMPLOYEE')")
     @PatchMapping("/status/{taskId}/{subTaskId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void updateSubTaskStatus( @PathVariable Integer taskId, @PathVariable Integer subTaskId, @RequestBody SubTaskPatchReqDTO subTaskPatchReqDTO) {

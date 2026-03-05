@@ -7,17 +7,21 @@ import com.workflowmanagement.task_track.enums.Department;
 import com.workflowmanagement.task_track.enums.subTaskEnum.SubTaskStatusEnum;
 import com.workflowmanagement.task_track.enums.taskenum.TaskStatus;
 
+import com.workflowmanagement.task_track.enums.workspace.WorkflowStatus;
+import com.workflowmanagement.task_track.enums.workspace.WorkflowStepStatus;
 import com.workflowmanagement.task_track.mapper.TaskMapper;
 import com.workflowmanagement.task_track.model.Task;
 import com.workflowmanagement.task_track.model.User;
 import com.workflowmanagement.task_track.model.UserPrincipal;
 
+import com.workflowmanagement.task_track.model.workflow.Workflow;
 import com.workflowmanagement.task_track.model.workflow.WorkflowStep;
 
 import com.workflowmanagement.task_track.repository.*;
 
 import com.workflowmanagement.task_track.service.ITaskService;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
 
@@ -43,6 +47,7 @@ public class TaskService implements ITaskService {
     private final WorkflowStepsRepository workflowStepsRepository;
 
 
+
     public TaskDto createTask(TaskCreateDto task){
         var auth  = SecurityContextHolder.getContext().getAuthentication();
         var principal = (UserPrincipal) auth.getPrincipal();
@@ -66,6 +71,15 @@ public class TaskService implements ITaskService {
                     .build();
             assignedToUser.getAssignedTasks().add(createdTask);
             createdByUser.getCreatedTasks().add(createdTask);
+
+            Workflow workflow = workflowStep.getWorkflow();
+            // Set workflow Status Level - 1
+
+
+            workflow.setStatus(WorkflowStatus.INPROGRESS);
+            workflowStep.setStatus(WorkflowStepStatus.PENDING);
+            //Set status for workflow step level - 2
+            workflowStepsRepository.save(workflowStep);
             taskRepository.save(createdTask);
             eventPublisher.publishEvent(new WorkflowEvent(assignedToUser.getUserId(), NotificationType.TASK_ASSIGNED, "New task assigned: "+ createdTask.getTitle()));
             return taskMapper.toDto(createdTask);
@@ -82,11 +96,17 @@ public class TaskService implements ITaskService {
         return taskMapper.toDtoList(taskList);
     }
 
-
-    public List<TaskDto> getTasksByCreatorId(Integer id){
+    @Override
+    public List<TaskDto> getTasksByCreatorId() {
+        var auth  = SecurityContextHolder.getContext().getAuthentication();
+        var principal = (UserPrincipal) auth.getPrincipal();
+        int id = principal.user().getUserId();
         List<Task> taskList =  taskRepository.findByCreatedByUser_UserId(id);
         return taskMapper.toDtoList(taskList);
     }
+
+
+
 
     public List<TaskDto> getTasksAssignedToUser(){
         var auth  = SecurityContextHolder.getContext().getAuthentication();
@@ -95,6 +115,13 @@ public class TaskService implements ITaskService {
 
         List<Task> taskList =  taskRepository.findByAssignedToUser_UserId(id);
         return taskMapper.toDtoList(taskList);
+    }
+
+    @Override
+    public TaskDto getTaskById(int id) {
+        Optional<Task> optTask = taskRepository.findById(id);
+        Task task = optTask.get();
+        return taskMapper.toDto(task);
     }
 
     public TaskDto updateTaskById(TaskDto t){
@@ -172,6 +199,7 @@ public class TaskService implements ITaskService {
     }
 
     @Override
+    @Transactional
     public TaskDto updateTaskStatus(Integer taskId, TaskStatus taskStatus) {
         Task task = taskRepository.findById(taskId).orElseThrow(() -> new EntityNotFoundException("The task was not found"));
         if(task.getStatus().equals(TaskStatus.COMPLETED)) throw new ValidationException("Task has been completed");
@@ -180,8 +208,24 @@ public class TaskService implements ITaskService {
                 .stream()
                 .filter(subTask -> subTask.getStatus().equals(SubTaskStatusEnum.COMPLETED))
                 .toArray().length != task.getSubTasks().toArray().length) throw new ValidationException("Some task are not completed");
+
+
       task.setStatus(taskStatus);
 
+      if(task.getSubTasks().stream().allMatch(el -> el.getStatus().equals(SubTaskStatusEnum.COMPLETED))) {
+          task.setStatus(TaskStatus.COMPLETED);
+      } else if(task.getSubTasks().stream().anyMatch(el -> el.getStatus().equals(SubTaskStatusEnum.INPROGRESS))) {
+          task.setStatus(TaskStatus.IN_PROGRESS);
+      } else {
+          task.setStatus(TaskStatus.OPEN);
+      }
+        eventPublisher.publishEvent(
+                new WorkflowEvent(
+                        task.getCreatedByUser().getUserId(),
+                        NotificationType.TASK_STATUS_UPDATE,
+                        "Task reassigned to you: " + task.getTitle()
+                )
+        );
         return  taskMapper.toDto(task);
     }
 

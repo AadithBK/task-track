@@ -11,6 +11,8 @@ public class CommentDto {
 
     // Getters and setters
     @NotNull
+    private Integer userId;
+    @NotNull
     private Long taskId;
 
     @NotBlank

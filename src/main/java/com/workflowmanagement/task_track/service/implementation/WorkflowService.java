@@ -4,9 +4,12 @@ import com.workflowmanagement.task_track.dto.workflow.ResponseCreateNewWorkflowD
 import com.workflowmanagement.task_track.dto.workflow.ResponseGetWorkflowByIDDTO;
 import com.workflowmanagement.task_track.dto.workflow.WorkflowStepUpdateStatusReqDTO;
 import com.workflowmanagement.task_track.enums.Department;
+import com.workflowmanagement.task_track.enums.notificationEnum.NotificationType;
+import com.workflowmanagement.task_track.enums.subTaskEnum.SubTaskStatusEnum;
 import com.workflowmanagement.task_track.enums.taskenum.TaskStatus;
 import com.workflowmanagement.task_track.enums.workspace.WorkflowStatus;
 import com.workflowmanagement.task_track.enums.workspace.WorkflowStepStatus;
+import com.workflowmanagement.task_track.event.WorkflowEvent;
 import com.workflowmanagement.task_track.exceptions.WorkflowUpdateException;
 import com.workflowmanagement.task_track.mapper.WorkflowTemplateMapper;
 import com.workflowmanagement.task_track.model.Comment;
@@ -24,9 +27,11 @@ import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.jdbc.Work;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.sql.ConnectionBuilder;
 import java.util.List;
 
 @Service
@@ -41,9 +46,9 @@ public class WorkflowService implements IWorkflowService {
     private final WorkflowStepsRepository workflowStepsRepository;
     private final TaskRepository taskRepository;
     private final CommentRepository commentRepository;
-
+    private final ApplicationEventPublisher eventPublisher;
     @Override
-    public ResponseCreateNewWorkflowDTO createWorkflowFromTemplate(Integer workflowTemplateID) {
+    public ResponseCreateNewWorkflowDTO createWorkflowFromTemplate(Integer workflowTemplateID, String workflowName) {
         WorkflowTemplate workflowTemplate = workflowTemplateRepository.findById(workflowTemplateID).orElseThrow(() -> new EntityNotFoundException("Workflow Template with ID " + workflowTemplateID + " does not exist"));
 
         var auth  = SecurityContextHolder.getContext().getAuthentication();
@@ -59,6 +64,7 @@ public class WorkflowService implements IWorkflowService {
 //                .workflowSteps(createWorkFlowSteps)
                 .workflowName(workflowTemplate.getWorkflowTemplateName())
 //                .currentStep(createWorkFlowSteps.getFirst().getWorkflowStepId())
+                .workflowName(workflowName)
                 .status(WorkflowStatus.PENDING)
                 .createdBy(managedUser)
                 .build();
@@ -150,6 +156,17 @@ public List<ResponseGetWorkflowByIDDTO> getWorkflowByUserId() {
         WorkflowStep workflowStep = workflowStepsRepository.findById(workflowStepId)
                 .orElseThrow(() -> new EntityNotFoundException("Workflow step not found"));
 
+        boolean arePreviousWorkflowStepsClosed = workflowStep
+                .getWorkflow()
+                .getWorkflowSteps()
+                .stream()
+                // 1. Only look at steps that came BEFORE this one
+                .filter(step -> step.getStep() < workflowStep.getStep())
+                // 2. Ensure every single one of those is Approved
+                .allMatch(step -> step.getStatus() == WorkflowStepStatus.APPROVED);
+        if (!arePreviousWorkflowStepsClosed) {
+            throw new WorkflowUpdateException("Cannot close this step as previous are open");
+        }
 
 
 
@@ -165,11 +182,30 @@ System.out.println(hasOpenTasks + "open staskas");
 
 
         switch (dto.getStepStatus()) {
+
             case WorkflowStepStatus.APPROVED -> {
+                var auth  = SecurityContextHolder.getContext().getAuthentication();
+                var principal = (UserPrincipal) auth.getPrincipal();
+                Integer user = principal.user().getUserId();
                 workflowStep.setStatus(WorkflowStepStatus.APPROVED);
+                Integer actorId = principal.user().getUserId();
+                Integer receiverId = workflowStep.getWorkflow().getCreatedBy().getUserId();
+
+                if (!receiverId.equals(actorId)) {
+                    eventPublisher.publishEvent(
+                            new WorkflowEvent(
+                                    receiverId,
+                                    NotificationType.TASK_APPROVED,
+                                    "Workflow step approved: " + workflowStep.getStepName()
+                            )
+                    );
+                }
 
             }
             case WorkflowStepStatus.REJECTED -> {
+                var auth  = SecurityContextHolder.getContext().getAuthentication();
+                var principal = (UserPrincipal) auth.getPrincipal();
+                Integer user = principal.user().getUserId();
                 Task taskToUpdate = workflowStep
                         .getTask()
                         .stream()
@@ -185,6 +221,18 @@ System.out.println(hasOpenTasks + "open staskas");
                 workflowStep.setStatus(WorkflowStepStatus.REJECTED);
 //                workflowStepsRepository.save(workflowStep);
                 commentRepository.save(comment);
+                Integer actorId = principal.user().getUserId();
+                Integer receiverId = taskToUpdate.getAssignedToUser().getUserId();
+
+                if (!receiverId.equals(actorId)) {
+                    eventPublisher.publishEvent(
+                            new WorkflowEvent(
+                                    receiverId,
+                                    NotificationType.TASK_REJECTED,
+                                    "Task rejected in workflow: " + taskToUpdate.getTitle()
+                            )
+                    );
+                }
 
 
             }
@@ -194,10 +242,26 @@ System.out.println(hasOpenTasks + "open staskas");
         }
 
         Workflow workflow = workflowStep.getWorkflow();
-        if((workflow.getStatus().equals(WorkflowStatus.PENDING) || workflow.getStatus().equals(WorkflowStatus.COMPLETED)) && workflow.getWorkflowSteps().stream().anyMatch(el -> el.getTask().stream().anyMatch(e -> e.getStatus().equals(TaskStatus.IN_PROGRESS) || e.getStatus().equals(TaskStatus.COMPLETED) ))) {
+
+        // Set workflow Status Level - 1
+        if((workflow.getStatus().equals(WorkflowStatus.PENDING) || workflow.getStatus().equals(WorkflowStatus.COMPLETED)) && workflow.getWorkflowSteps().stream().anyMatch(el -> el.getStatus().equals(WorkflowStepStatus.PENDING) || el.getStatus().equals(WorkflowStepStatus.REJECTED))) {
             workflow.setStatus(WorkflowStatus.INPROGRESS);
         }
-        if( workflow.getCurrentStep() <= workflow.getWorkflowSteps().size() ) {
+         else if(workflow.getWorkflowSteps().stream().allMatch(el -> el.getStatus().equals(WorkflowStepStatus.APPROVED))) {
+            workflow.setStatus(WorkflowStatus.COMPLETED);
+        }
+
+
+//        //Set status for workflow step level - 2
+//        if(workflowStep.getTask().stream().anyMatch(el -> el.getStatus().equals(TaskStatus.IN_PROGRESS))) {
+//            workflowStep.setStatus(WorkflowStepStatus.PENDING);
+//        } else if (workflowStep.getTask().stream().allMatch(el -> el.getStatus().equals(TaskStatus.COMPLETED))) {
+//            workflowStep.setStatus(WorkflowStepStatus.APPROVED);
+//        }
+
+
+        //Set task status according to sub task
+        if(workflow.getCurrentStep() != null &&  workflow.getCurrentStep() <= workflow.getWorkflowSteps().size() ) {
 
             WorkflowStep nextStep =  workflow.getWorkflowSteps().stream().filter(step -> step.getStep().equals(workflowStep.getStep() + 1)).toList().getFirst();
 
@@ -205,9 +269,6 @@ System.out.println(hasOpenTasks + "open staskas");
             workflowRepository.save(workflow);
         }
 
-        if(workflow.getWorkflowSteps().stream().allMatch(el -> el.getStatus().equals(WorkflowStepStatus.APPROVED))) {
-            workflow.setStatus(WorkflowStatus.COMPLETED);
-        }
 
 
     }

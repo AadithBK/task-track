@@ -12,6 +12,7 @@ import com.workflowmanagement.task_track.model.workflow.Workflow;
 import com.workflowmanagement.task_track.service.implementation.WorkflowService;
 import com.workflowmanagement.task_track.util.CustomJSONResponse;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -32,14 +33,17 @@ public class WorkflowController {
     public static  class CreateWorkflowReq {
         @NotNull(message = "Workflow Template ID is required")
         private Integer workflowTemplateId;
+
+        @NotBlank(message = "Name for workflow is required")
+        private String workflowName;
     }
 
     private final WorkflowService workflowService;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public CustomJSONResponse<ResponseCreateNewWorkflowDTO> createWorkFlowFromTemplate(@RequestBody CreateWorkflowReq reqBody){
-        return  CustomJSONResponse.ok("Created new workflow template",workflowService.createWorkflowFromTemplate(reqBody.workflowTemplateId));
+    public CustomJSONResponse<ResponseCreateNewWorkflowDTO> createWorkFlowFromTemplate(@Valid @RequestBody CreateWorkflowReq reqBody){
+        return  CustomJSONResponse.ok("Created new workflow template",workflowService.createWorkflowFromTemplate(reqBody.workflowTemplateId, reqBody.workflowName));
     }
 
 @DeleteMapping("/{workflowId}")

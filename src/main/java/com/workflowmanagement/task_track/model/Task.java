@@ -28,6 +28,9 @@ public class Task {
 //@OneToMany(mappedBy = "taskId")
     private Integer taskId;
 
+    private Boolean notified1Day = false;
+    private Boolean notified1Hour = false;
+    private Boolean notifiedOverdue = false;
 
     @OneToMany(mappedBy = "taskId", fetch = FetchType.EAGER)
    @JsonBackReference
@@ -75,7 +78,11 @@ public class Task {
     private TaskStatus status;
 
     @Column()
-    @JsonFormat(shape = JsonFormat.Shape.STRING)
+    @JsonFormat(
+            shape = JsonFormat.Shape.STRING,
+            pattern = "yyyy-MM-dd'T'HH:mm",
+            timezone = "Asia/Kolkata"
+    )
     private Instant dueDate ;
 
     @ManyToOne

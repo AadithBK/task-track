@@ -12,7 +12,7 @@ import java.util.List;
 
 public interface IWorkflowService {
 
-    public ResponseCreateNewWorkflowDTO createWorkflowFromTemplate(Integer workflowTemplateID);
+    public ResponseCreateNewWorkflowDTO createWorkflowFromTemplate(Integer workflowTemplateID, String workflowName);
 
     public  void  deleteWorkflow(Integer workflowId);
 

@@ -19,6 +19,9 @@ public class SubTask {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer subTaskId;
 
+    private Boolean notified1Day = false;
+    private Boolean notified1Hour = false;
+    private Boolean notifiedOverdue = false;
 
     @ManyToOne(
             fetch = FetchType.LAZY
