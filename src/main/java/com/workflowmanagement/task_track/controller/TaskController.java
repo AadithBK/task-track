@@ -91,13 +91,13 @@ public class TaskController {
     }
 
     @GetMapping("/count/completed/dept/{deptName}")
-    @PreAuthorize("hasRole('MANAGER')")
+    @PreAuthorize("hasRole('ADMIN')")
     public long getCompletedCountByDept(@PathVariable String deptName) {
         return taskService.getCompletedCountByDept(deptName);
     }
 
     @GetMapping("/count/total/dept/{deptName}")
-    @PreAuthorize("hasRole('MANAGER')")
+    @PreAuthorize("hasRole('ADMIN')")
     public long getTotalCountByDept(@PathVariable String deptName) {
         return taskService.getTotalCountByDept(deptName);
     }

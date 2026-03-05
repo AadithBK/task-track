@@ -33,7 +33,7 @@ public class UserService implements IUserService {
     private final JwtUtil jwtUtil;
 
     @Autowired
-    private UserMapper userMapper;
+    private final UserMapper userMapper;
 
 
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
