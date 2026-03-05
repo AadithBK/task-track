@@ -15,4 +15,8 @@ public class UserResponseDto {
     private Role role;
     private Department department;
     private Status status;
+
+    public UserResponseDto() {
+
+    }
 }

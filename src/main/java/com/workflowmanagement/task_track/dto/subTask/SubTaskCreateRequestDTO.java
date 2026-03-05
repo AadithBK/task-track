@@ -1,7 +1,7 @@
 package com.workflowmanagement.task_track.dto.subTask;
 
 
-public record SubTaskCreateRequestDTO(Integer taskId, String title, String status) {
+import com.workflowmanagement.task_track.enums.subTaskEnum.SubTaskStatusEnum;
 
-
+public record SubTaskCreateRequestDTO(Integer taskId, String title, SubTaskStatusEnum status) {
 }

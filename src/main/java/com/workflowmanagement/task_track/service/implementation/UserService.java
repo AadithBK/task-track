@@ -37,7 +37,7 @@ public class UserService implements IUserService {
     private final JwtUtil jwtUtil;
 
     @Autowired
-    private UserMapper userMapper;
+    private final UserMapper userMapper;
 
     @Autowired
     private ApplicationEventPublisher eventPublisher;
