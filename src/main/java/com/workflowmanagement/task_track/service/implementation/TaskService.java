@@ -4,9 +4,11 @@ import com.workflowmanagement.task_track.dto.ResponseTaskCreateDto;
 import com.workflowmanagement.task_track.dto.TaskCreateDto;
 import com.workflowmanagement.task_track.dto.TaskDto;
 import com.workflowmanagement.task_track.enums.Department;
+import com.workflowmanagement.task_track.enums.Role;
 import com.workflowmanagement.task_track.enums.subTaskEnum.SubTaskStatusEnum;
 import com.workflowmanagement.task_track.enums.taskenum.TaskStatus;
 
+import com.workflowmanagement.task_track.exceptions.InvalidCredentialsException;
 import com.workflowmanagement.task_track.enums.workspace.WorkflowStatus;
 import com.workflowmanagement.task_track.enums.workspace.WorkflowStepStatus;
 import com.workflowmanagement.task_track.mapper.TaskMapper;
@@ -119,9 +121,17 @@ public class TaskService implements ITaskService {
 
     @Override
     public TaskDto getTaskById(int id) {
+        var auth  = SecurityContextHolder.getContext().getAuthentication();
+        var principal = (UserPrincipal) auth.getPrincipal();
+        int userId = principal.user().getUserId();
         Optional<Task> optTask = taskRepository.findById(id);
         Task task = optTask.get();
-        return taskMapper.toDto(task);
+        if(task.getAssignedToUser().getUserId().equals(userId) || Role.MANAGER.equals(principal.user().getRole())){
+            return taskMapper.toDto(task);
+        }
+        else{
+            throw new InvalidCredentialsException("You do not have access to this task");
+        }
     }
 
     public TaskDto updateTaskById(TaskDto t){

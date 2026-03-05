@@ -64,7 +64,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/users/signup","/api/users/login").permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .requestMatchers("/error").permitAll()
-                        .requestMatchers("/ws/**").permitAll()
+//                        .requestMatchers("/api/notifications/ws/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

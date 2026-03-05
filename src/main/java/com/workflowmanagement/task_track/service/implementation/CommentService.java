@@ -30,6 +30,7 @@ public class CommentService implements ICommentService {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         UserPrincipal userPrincipal = (UserPrincipal) auth.getPrincipal();
         Integer currentUserId = userPrincipal.user().getUserId();
+        String currentUserName = userPrincipal.user().getUserName();
 
         // Get the role (assuming your User entity or Principal has a getRole() method)
         String userRole = userPrincipal.user().getRole().name();
@@ -51,6 +52,7 @@ public class CommentService implements ICommentService {
         comment.setTaskId(commentDTO.getTaskId());
         comment.setText(commentDTO.getText());
         comment.setUserId(currentUserId);
+        comment.setAuthorName(currentUserName);
 
             Comment savedComment = commentRepository.save(comment);
 
