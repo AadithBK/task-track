@@ -29,6 +29,9 @@ public class Comment {
     @Column(nullable = false, length = 1000)
     private String text;
 
+
+    private String authorName;
+
     @Column(nullable = false)
     @CreationTimestamp
     private LocalDateTime createdDate ;

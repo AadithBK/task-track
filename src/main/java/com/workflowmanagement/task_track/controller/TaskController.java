@@ -49,7 +49,7 @@ public class TaskController {
     }
 
     @GetMapping("id/{id}")
-    @PreAuthorize("hasRole('MANAGER')")
+    @PreAuthorize("hasAnyRole('MANAGER','EMPLOYEE')")
     public ResponseEntity<CustomJSONResponse<TaskDto>> getTaskById(@Valid @PathVariable Integer id){
         TaskDto task = taskService.getTaskById(id);
         return new ResponseEntity<>(CustomJSONResponse.ok("task fetched successfully ",task),HttpStatus.OK);

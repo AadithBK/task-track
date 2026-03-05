@@ -69,7 +69,7 @@ public class DeadlineScheduler {
             }
 
             //  OVERDUE
-            if (minutes < 0 && !task.getNotifiedOverdue()) {
+            if (minutes < 0 && Boolean.TRUE.equals(task.getNotifiedOverdue())) {
 
                 publisher.publishEvent(new WorkflowEvent(
                         userId,
