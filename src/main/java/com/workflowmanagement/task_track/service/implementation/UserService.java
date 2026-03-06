@@ -13,6 +13,7 @@ import com.workflowmanagement.task_track.dto.user.UserResponseDto;
 import com.workflowmanagement.task_track.enums.Status;
 import com.workflowmanagement.task_track.mapper.UserMapper;
 import com.workflowmanagement.task_track.model.User;
+import com.workflowmanagement.task_track.model.UserPrincipal;
 import com.workflowmanagement.task_track.repository.UserRepository;
 import com.workflowmanagement.task_track.service.IUserService;
 import jakarta.persistence.EntityNotFoundException;
@@ -20,6 +21,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -37,7 +39,7 @@ public class UserService implements IUserService {
     private final JwtUtil jwtUtil;
 
     @Autowired
-    private UserMapper userMapper;
+    private final UserMapper userMapper;
 
     @Autowired
     private ApplicationEventPublisher eventPublisher;
@@ -119,9 +121,18 @@ public class UserService implements IUserService {
     }
 
     public Optional<UserResponseDto> getUserById(Integer id) {
+        var auth  = SecurityContextHolder.getContext().getAuthentication();
+        var principal = (UserPrincipal) auth.getPrincipal();
+        int userId = principal.user().getUserId();
+        if(id == userId || Role.MANAGER.equals(((UserPrincipal) auth.getPrincipal()).user().getRole())){
+
         return Optional.ofNullable(userRepository.findById(id)
                 .map(userMapper::userToUserResponseDto)
                 .orElseThrow(() -> new EntityNotFoundException("User Not Found")));
+        }
+        else{
+            throw new InvalidCredentialsException("You do not have access to this user");
+        }
     }
     public Optional<User> getUserObjById(Integer id) {
         return userRepository.findById(id);

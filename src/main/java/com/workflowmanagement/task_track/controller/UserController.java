@@ -54,7 +54,7 @@ public class UserController  {
     }
 
     @GetMapping("/user/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER','EMPLOYEE')")
     public ResponseEntity<CustomJSONResponse<UserResponseDto>> getUserById(@PathVariable Integer id)
     {
         return userService.getUserById(id).

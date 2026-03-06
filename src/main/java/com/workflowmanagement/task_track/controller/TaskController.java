@@ -49,7 +49,7 @@ public class TaskController {
     }
 
     @GetMapping("id/{id}")
-    @PreAuthorize("hasRole('MANAGER')")
+    @PreAuthorize("hasAnyRole('MANAGER','EMPLOYEE')")
     public ResponseEntity<CustomJSONResponse<TaskDto>> getTaskById(@Valid @PathVariable Integer id){
         TaskDto task = taskService.getTaskById(id);
         return new ResponseEntity<>(CustomJSONResponse.ok("task fetched successfully ",task),HttpStatus.OK);
@@ -98,13 +98,13 @@ public class TaskController {
     }
 
     @GetMapping("/count/completed/dept/{deptName}")
-    @PreAuthorize("hasRole('MANAGER')")
+    @PreAuthorize("hasRole('ADMIN')")
     public long getCompletedCountByDept(@PathVariable String deptName) {
         return taskService.getCompletedCountByDept(deptName);
     }
 
     @GetMapping("/count/total/dept/{deptName}")
-    @PreAuthorize("hasRole('MANAGER')")
+    @PreAuthorize("hasRole('ADMIN')")
     public long getTotalCountByDept(@PathVariable String deptName) {
         return taskService.getTotalCountByDept(deptName);
     }

@@ -48,7 +48,7 @@ public class WorkflowService implements IWorkflowService {
     private final CommentRepository commentRepository;
     private final ApplicationEventPublisher eventPublisher;
     @Override
-    public ResponseCreateNewWorkflowDTO createWorkflowFromTemplate(Integer workflowTemplateID) {
+    public ResponseCreateNewWorkflowDTO createWorkflowFromTemplate(Integer workflowTemplateID, String workflowName) {
         WorkflowTemplate workflowTemplate = workflowTemplateRepository.findById(workflowTemplateID).orElseThrow(() -> new EntityNotFoundException("Workflow Template with ID " + workflowTemplateID + " does not exist"));
 
         var auth  = SecurityContextHolder.getContext().getAuthentication();
@@ -64,6 +64,7 @@ public class WorkflowService implements IWorkflowService {
 //                .workflowSteps(createWorkFlowSteps)
                 .workflowName(workflowTemplate.getWorkflowTemplateName())
 //                .currentStep(createWorkFlowSteps.getFirst().getWorkflowStepId())
+                .workflowName(workflowName)
                 .status(WorkflowStatus.PENDING)
                 .createdBy(managedUser)
                 .build();
@@ -155,6 +156,17 @@ public List<ResponseGetWorkflowByIDDTO> getWorkflowByUserId() {
         WorkflowStep workflowStep = workflowStepsRepository.findById(workflowStepId)
                 .orElseThrow(() -> new EntityNotFoundException("Workflow step not found"));
 
+        boolean arePreviousWorkflowStepsClosed = workflowStep
+                .getWorkflow()
+                .getWorkflowSteps()
+                .stream()
+                // 1. Only look at steps that came BEFORE this one
+                .filter(step -> step.getStep() < workflowStep.getStep())
+                // 2. Ensure every single one of those is Approved
+                .allMatch(step -> step.getStatus() == WorkflowStepStatus.APPROVED);
+        if (!arePreviousWorkflowStepsClosed) {
+            throw new WorkflowUpdateException("Cannot close this step as previous are open");
+        }
 
 
 
@@ -230,10 +242,26 @@ System.out.println(hasOpenTasks + "open staskas");
         }
 
         Workflow workflow = workflowStep.getWorkflow();
-        if((workflow.getStatus().equals(WorkflowStatus.PENDING) || workflow.getStatus().equals(WorkflowStatus.COMPLETED)) && workflow.getWorkflowSteps().stream().anyMatch(el -> el.getTask().stream().anyMatch(e -> e.getStatus().equals(TaskStatus.IN_PROGRESS) || e.getStatus().equals(TaskStatus.COMPLETED) ))) {
+
+        // Set workflow Status Level - 1
+        if((workflow.getStatus().equals(WorkflowStatus.PENDING) || workflow.getStatus().equals(WorkflowStatus.COMPLETED)) && workflow.getWorkflowSteps().stream().anyMatch(el -> el.getStatus().equals(WorkflowStepStatus.PENDING) || el.getStatus().equals(WorkflowStepStatus.REJECTED))) {
             workflow.setStatus(WorkflowStatus.INPROGRESS);
         }
-        if( workflow.getCurrentStep() <= workflow.getWorkflowSteps().size() ) {
+         else if(workflow.getWorkflowSteps().stream().allMatch(el -> el.getStatus().equals(WorkflowStepStatus.APPROVED))) {
+            workflow.setStatus(WorkflowStatus.COMPLETED);
+        }
+
+
+//        //Set status for workflow step level - 2
+//        if(workflowStep.getTask().stream().anyMatch(el -> el.getStatus().equals(TaskStatus.IN_PROGRESS))) {
+//            workflowStep.setStatus(WorkflowStepStatus.PENDING);
+//        } else if (workflowStep.getTask().stream().allMatch(el -> el.getStatus().equals(TaskStatus.COMPLETED))) {
+//            workflowStep.setStatus(WorkflowStepStatus.APPROVED);
+//        }
+
+
+        //Set task status according to sub task
+        if(workflow.getCurrentStep() != null &&  workflow.getCurrentStep() <= workflow.getWorkflowSteps().size() ) {
 
             WorkflowStep nextStep =  workflow.getWorkflowSteps().stream().filter(step -> step.getStep().equals(workflowStep.getStep() + 1)).toList().getFirst();
 
@@ -241,9 +269,6 @@ System.out.println(hasOpenTasks + "open staskas");
             workflowRepository.save(workflow);
         }
 
-        if(workflow.getWorkflowSteps().stream().allMatch(el -> el.getStatus().equals(WorkflowStepStatus.APPROVED))) {
-            workflow.setStatus(WorkflowStatus.COMPLETED);
-        }
 
 
     }
