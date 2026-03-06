@@ -37,6 +37,7 @@ public interface WorkflowTemplateMapper {
 
     @Mapping(target = "workflowStepName", source = "workflowTemplateStepName")
     @Mapping(target = "workflowStepPosition", source = "workflowTemplateStepPosition")
+    @Mapping(target = "workflowStepId", source = "workflowTemplateStepId")
     HelperEmbeddedStepsDTO toStepDto(WorkflowTemplateStep workflowTemplateStep);
 
     List<WorkflowTemplateStep> toDtoFromWorkflowStepEntity(Stream<HelperEmbeddedStepsDTO> helperEmbeddedStepsDTOStream);
