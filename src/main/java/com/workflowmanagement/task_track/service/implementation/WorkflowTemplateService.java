@@ -13,12 +13,14 @@ import com.workflowmanagement.task_track.repository.WorkflowTemplateRepository;
 import com.workflowmanagement.task_track.service.IWorkFlowTemplateService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
+import org.hibernate.jdbc.Work;
 import org.mapstruct.factory.Mappers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Objects;
+import java.lang.reflect.Array;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class WorkflowTemplateService implements IWorkFlowTemplateService {
@@ -55,62 +57,73 @@ public class WorkflowTemplateService implements IWorkFlowTemplateService {
     @Override
 
     public void updateWorkFlowTemplate(Integer templateId, Integer templateStepId, UpdateTemplateDto updateTemplateDto) {
-        WorkflowTemplate template = workflowTemplateRepository.findByWorkflowTemplateIdAndStatusTrue(templateId).orElseThrow(() -> new EntityNotFoundException("Workflow Template with ID " + templateId + " not found"));
-System.out.println("Iran 1");
-        if(updateTemplateDto.getName() != null) {
+        WorkflowTemplate template = workflowTemplateRepository.findByWorkflowTemplateIdAndStatusTrue(templateId)
+                .orElseThrow(() -> new EntityNotFoundException("Workflow Template with ID " + templateId + " not found"));
+
+        if (updateTemplateDto.getName() != null) {
             template.setWorkflowTemplateName(updateTemplateDto.getName());
         }
-        if(updateTemplateDto.getStepUpdate() != null ) {
-            for(HelperUpdateTemplateDto h: updateTemplateDto.getStepUpdate()) {
-                if(templateStepId < 1 ) throw new WorkflowUpdateException("Workflow Step ID not valid");
-                System.out.println(h.getOperation());
+
+        if (updateTemplateDto.getStepUpdate() != null) {
+            for (HelperUpdateTemplateDto h : updateTemplateDto.getStepUpdate()) {
                 switch (h.getOperation()) {
-//                    case UpdateWorkflowStepOperation.CHANGEPOSITION -> {
+                    case CHANGEPOSITION -> {
+                        // 1. Find the step to move
+                        WorkflowTemplateStep mover = template.getWorkflowSteps().stream()
+                                .filter(e -> e.getWorkflowTemplateStepId().equals(templateStepId))
+                                .findFirst()
+                                .orElseThrow(() -> new WorkflowUpdateException("Step not linked to this template"));
 
-//                        if(template.getWorkflowTemplateId() ) throw  new WorkflowUpdateException("Template Step with ID " +  templateStepId+" not linked to Workflow template " + template.getWorkflowTemplateId());
-//                        if(( h.getPosition() < 0 || h.getPosition() > template.getWorkflowTemplateSteps())  ) throw new WorkflowUpdateException("Position is SAME/Less than 0/ More than number of steps");
-//                      WorkflowTemplateStep workflowStepToChangeFrom =   template.getWorkflowSteps().stream().filter(s -> s.getWorkflowTemplateStepId() == templateStepId).findFirst().orElseThrow(() -> new EntityNotFoundException("Workflow Template Step with ID " + templateStepId + " not found on this template"));
-//                        WorkflowTemplateStep workflowStepToChangeTo =   template.getWorkflowSteps().stream().filter(s -> s.getWorkflowTemplateStepPosition() == h.getPosition()).findFirst().orElseThrow(() -> new EntityNotFoundException("Workflow Template Step Position " + h.getPosition() + " not found on this template"));
-//                      workflowTemplateRepository.swapPositions(template.getWorkflowTemplateId(), workflowStepToChangeFrom.getWorkflowTemplateStepId(), h.getPosition());
-//                    entityManager.refresh(template);
+                        // 2. Prepare the ordered list
+                        List<WorkflowTemplateStep> others = template.getWorkflowSteps().stream()
+                                .filter(e -> !e.getWorkflowTemplateStepId().equals(templateStepId))
+                                .sorted(Comparator.comparingInt(WorkflowTemplateStep::getWorkflowTemplateStepPosition))
+                                .toList();
 
-//                       Integer temp = workflowStepToChangeFrom.getWorkflowTemplateStepPosition();
-//                       Integer temp2 = workflowStepToChangeTo.getWorkflowTemplateStepPosition();
-//                       if(!Objects.equals(workflowStepToChangeTo.getWorkflowTemplate().getWorkflowTemplateId(), template.getWorkflowTemplateId()) && !Objects.equals(workflowStepToChangeFrom.getWorkflowTemplate().getWorkflowTemplateId(), template.getWorkflowTemplateId())) throw  new WorkflowUpdateException("Template Step with ID " +  templateStepId+" not linked to Workflow template " + template.getWorkflowTemplateId());
-//                        WorkflowTemplateStep ws1 = workflowStepToChangeTo;
-//                        WorkflowTemplateStep ws2 = workflowStepToChangeFrom;
-//
-//                        workflowStepToChangeTo.setWorkflowTemplateStepPosition(90000);
-//                        workflowStepToChangeFrom.setWorkflowTemplateStepPosition(90001);
-//                        workflowTemplateRepository.flush();
-//                       workflowStepToChangeFrom.setWorkflowTemplateStepPosition(temp2);
-//                       workflowStepToChangeTo.setWorkflowTemplateStepPosition(temp);
-//
-//                        workflowTemplateRepository.flush();
-//                    }
-                    case UpdateWorkflowStepOperation.NAME -> {
-                        if(h.getName() == null) throw  new WorkflowUpdateException("Workflow Name is null");
+                        List<WorkflowTemplateStep> finalStepsArray = new ArrayList<>();
+                        int targetIdx = Math.max(0, h.getPosition() - 1);
+                        int insertAt = Math.min(targetIdx, others.size());
 
-                        WorkflowTemplateStep workflowStep =   template.getWorkflowSteps().stream().filter(s -> {
-                            return s.getWorkflowTemplateStepId() == templateStepId;
-                        }).findFirst().orElseThrow(() -> new EntityNotFoundException("Workflow Template Step with ID " + templateStepId + " not found"));
-                        System.out.println(workflowStep.getWorkflowTemplate().getWorkflowTemplateId() +" "+template.getWorkflowTemplateId());
-                        if(!Objects.equals(workflowStep.getWorkflowTemplate().getWorkflowTemplateId(), template.getWorkflowTemplateId())) throw  new WorkflowUpdateException("Template Step with ID " +  templateStepId+" not linked to Workflow template " + template.getWorkflowTemplateId());
-                        workflowStep.setWorkflowTemplateStepName(h.getName());
+                        finalStepsArray.addAll(others.subList(0, insertAt));
+                        finalStepsArray.add(mover);
+                        finalStepsArray.addAll(others.subList(insertAt, others.size()));
+
+                        // 3. RE-INDEXING STRATEGY (Avoids Validation & Duplicate Key Errors)
+                        // Move to "Parking Lot" (e.g., 1001, 1002...) to free up low numbers
+                        for (int i = 0; i < finalStepsArray.size(); i++) {
+                            finalStepsArray.get(i).setWorkflowTemplateStepPosition(1000 + i + 1);
+                        }
+                        workflowTemplateRepository.saveAndFlush(template);
+
+                        // Move back to final positions (1, 2, 3...)
+                        for (int i = 0; i < finalStepsArray.size(); i++) {
+                            finalStepsArray.get(i).setWorkflowTemplateStepPosition(i + 1);
+                        }
+
+                        // We don't need clear()/addAll() if we modified objects already in the managed list
+                        workflowTemplateRepository.saveAndFlush(template);
                     }
 
-                    case UpdateWorkflowStepOperation.NEW -> {
-                        if(h.getNewStep() == null) throw  new WorkflowUpdateException("Workflow Name is null");
-                       WorkflowTemplateStep newStep = mapper.toStepEntity(h.getNewStep());
-                       newStep.setWorkflowTemplate(template);
+                    case NAME -> {
+                        WorkflowTemplateStep step = template.getWorkflowSteps().stream()
+                                .filter(s -> s.getWorkflowTemplateStepId().equals(templateStepId))
+                                .findFirst()
+                                .orElseThrow(() -> new EntityNotFoundException("Step not found"));
+                        step.setWorkflowTemplateStepName(h.getName());
+                    }
+
+                    case NEW -> {
+                        WorkflowTemplateStep newStep = mapper.toStepEntity(h.getNewStep());
+                        newStep.setWorkflowTemplate(template);
+                        // Set position to the end of the list
+                        newStep.setWorkflowTemplateStepPosition(template.getWorkflowSteps().size() + 1);
                         template.getWorkflowSteps().add(newStep);
                     }
                 }
             }
         }
-
         workflowTemplateRepository.save(template);
-     }
+    }
 
      @Transactional
     @Override
