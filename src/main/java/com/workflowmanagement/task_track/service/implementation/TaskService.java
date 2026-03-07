@@ -211,34 +211,53 @@ public class TaskService implements ITaskService {
     @Override
     @Transactional
     public TaskDto updateTaskStatus(Integer taskId, TaskStatus taskStatus) {
-        Task task = taskRepository.findById(taskId).orElseThrow(() -> new EntityNotFoundException("The task was not found"));
-        if(task.getStatus().equals(TaskStatus.COMPLETED)) throw new ValidationException("Task has been completed");
-      if(task.getStatus().equals(taskStatus)) throw new ValidationException("New state is same as old state");
-      if(taskStatus.equals(TaskStatus.COMPLETED) && task.getSubTasks()
-                .stream()
-                .filter(subTask -> subTask.getStatus().equals(SubTaskStatusEnum.COMPLETED))
-                .toArray().length != task.getSubTasks().toArray().length) throw new ValidationException("Some task are not completed");
+        // 1. Fetch
+        Task task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new EntityNotFoundException("The task was not found"));
 
+        // 2. Initial Validations
+        if (task.getStatus().equals(TaskStatus.COMPLETED))
+            throw new ValidationException("Task has already been completed");
 
-      task.setStatus(taskStatus);
+        if (task.getStatus().equals(taskStatus))
+            throw new ValidationException("New state is same as old state");
 
-      if(task.getSubTasks().stream().allMatch(el -> el.getStatus().equals(SubTaskStatusEnum.COMPLETED))) {
-          task.setStatus(TaskStatus.COMPLETED);
-      } else if(task.getSubTasks().stream().anyMatch(el -> el.getStatus().equals(SubTaskStatusEnum.INPROGRESS))) {
-          task.setStatus(TaskStatus.IN_PROGRESS);
-      } else {
-          task.setStatus(TaskStatus.OPEN);
-      }
-        eventPublisher.publishEvent(
-                new WorkflowEvent(
-                        task.getCreatedByUser().getUserId(),
-                        NotificationType.TASK_STATUS_UPDATE,
-                        "Task reassigned to you: " + task.getTitle()
-                )
-        );
-        return  taskMapper.toDto(task);
+        // 3. Logic: If trying to complete the Parent Task, check if all subtasks are COMPLETED
+        if (taskStatus.equals(TaskStatus.COMPLETED)) {
+            boolean allSubtasksDone = task.getSubTasks().stream()
+                    .allMatch(st -> st.getStatus().equals(SubTaskStatusEnum.COMPLETED));
+
+            if (!allSubtasksDone) {
+                throw new ValidationException("Cannot complete task: Some subtasks are not finished");
+            }
+        }
+
+        // 4. Apply the requested status
+        task.setStatus(taskStatus);
+
+        // 5. OPTIONAL: Automatic state promotion (Moving from OPEN to IN_PROGRESS)
+        // Only auto-update if the user didn't specifically ask for COMPLETED
+        if (taskStatus != TaskStatus.COMPLETED) {
+            boolean hasActiveSubtasks = task.getSubTasks().stream()
+                    .anyMatch(st -> st.getStatus().equals(SubTaskStatusEnum.INPROGRESS));
+
+            if (hasActiveSubtasks) {
+                task.setStatus(TaskStatus.IN_PROGRESS);
+            }
+        }
+
+        // 6. Save and Notify
+        // save() is technically optional due to @Transactional, but good for clarity
+        Task savedTask = taskRepository.save(task);
+
+        eventPublisher.publishEvent(new WorkflowEvent(
+                savedTask.getCreatedByUser().getUserId(),
+                NotificationType.TASK_STATUS_UPDATE,
+                "Task status updated to: " + savedTask.getStatus()
+        ));
+
+        return taskMapper.toDto(savedTask);
     }
-
 
     public long getCompletedCountByUser(Integer userId) {
         // Note: Using the TaskStatus Enum instead of String "COMPLETED"
