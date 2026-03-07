@@ -13,4 +13,7 @@ public class HelperEmbeddedStepsDTO {
     private String workflowStepName;
 @Valid
 private Integer workflowStepPosition;
+
+@Valid
+    private Integer workflowStepId;
 }
