@@ -176,7 +176,7 @@ public List<ResponseGetWorkflowByIDDTO> getWorkflowByUserId() {
                     return  !TaskStatus.COMPLETED.equals(t.getStatus());
                 });
 System.out.println(hasOpenTasks + "open staskas");
-        if (hasOpenTasks) {
+        if (hasOpenTasks && !workflowStep.getStatus().equals(WorkflowStepStatus.REJECTED)) {
             throw new WorkflowUpdateException("Workflow Step has some open tasks");
         }
 
@@ -215,6 +215,7 @@ System.out.println(hasOpenTasks + "open staskas");
                 Comment comment = new Comment();
                 comment.setTaskId(taskToUpdate.getTaskId().longValue());
                 comment.setText(dto.getMessage());
+                comment.setAuthorName(principal.user().getUserName());
                 comment.setUserId(taskToUpdate.getAssignedToUser().getUserId());
                 taskToUpdate.setStatus(TaskStatus.IN_PROGRESS);
 //                taskRepository.save(taskToUpdate);
@@ -261,9 +262,9 @@ System.out.println(hasOpenTasks + "open staskas");
 
 
         //Set task status according to sub task
-        if(workflow.getCurrentStep() != null &&  workflow.getCurrentStep() <= workflow.getWorkflowSteps().size() ) {
+        if(workflow.getCurrentStep() != workflow.getWorkflowSteps().size() &&  workflow.getCurrentStep() != null &&  workflow.getCurrentStep() <= workflow.getWorkflowSteps().size() ) {
 
-            WorkflowStep nextStep =  workflow.getWorkflowSteps().stream().filter(step -> step.getStep().equals(workflowStep.getStep() + 1)).toList().getFirst();
+            WorkflowStep nextStep =  workflow.getWorkflowSteps().stream().filter(step -> step.getStep().equals(workflow.getCurrentStep() + 1)).toList().getFirst();
 
             workflow.setCurrentStep(nextStep.getWorkflowStepId());
             workflowRepository.save(workflow);
